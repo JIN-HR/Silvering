@@ -78,26 +78,28 @@ class _CaptioningAppState extends State<CaptioningApp> {
       appBar: AppBar(
         title: Text('달리는 대방어'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            _imageData == null
-                ? Text('사진을 선택해주세요!')
-                : Image.memory(_imageData!),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _getImage,
-              child: Text('사진 선택하기'),
-            ),
-            ElevatedButton(
-              onPressed: _uploadAndGetCaption,
-              child: Text('일기 쓰기'),
-            ),
-            SizedBox(height: 20),
-            _caption.isNotEmpty ? Text('Caption: $_caption') : Container(),
-          ],
-        ),
+      body: SingleChildScrollView(
+        child: center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _imageData == null
+                  ? Text('사진을 선택해주세요!')
+                  : Image.memory(_imageData!),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _getImage,
+                child: Text('사진 선택하기'),
+              ),
+              ElevatedButton(
+                onPressed: _uploadAndGetCaption,
+                child: Text('일기 쓰기'),
+              ),
+              SizedBox(height: 20),
+              _caption.isNotEmpty ? Text('Caption: $_caption') : Container(),
+            ],
+          ),
+        )
       ),
     );
   }
