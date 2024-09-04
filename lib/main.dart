@@ -45,12 +45,16 @@ class _CaptioningAppState extends State<CaptioningApp> {
     if (_imageData == null) return; // 예외 처리 (실패 시 안내 메시지 표출)
 
     try {
-      final uri = Uri.parse("http://10.0.2.2:5000/generate_caption");
+      final uri = Uri.parse("http://127.0.0.1:5000/generate_caption");
 
       var request = http.MultipartRequest('POST', uri);
       var multipartFile = http.MultipartFile.fromBytes('image', _imageData!, filename: 'upload.jpg');
 
       request.files.add(multipartFile);
+
+      request.headers.addAll({
+        "Content-Type": "application/json",
+      });
 
       var response = await request.send();
 
@@ -79,7 +83,7 @@ class _CaptioningAppState extends State<CaptioningApp> {
         title: Text('달리는 대방어'),
       ),
       body: SingleChildScrollView(
-        child: center(
+        child : Center (
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -100,6 +104,7 @@ class _CaptioningAppState extends State<CaptioningApp> {
             ],
           ),
         )
+
       ),
     );
   }
