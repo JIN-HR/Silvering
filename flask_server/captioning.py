@@ -28,6 +28,7 @@ def load_image(image_path):
 
 # 영어 캡션 생성
 def generate_english_caption(image_path):
+    print('캡션 생성 중')
     image_tensor = load_image(image_path)
     pixel_values = feature_extractor(images=image_tensor, return_tensors="pt").pixel_values
     attention_mask = torch.ones(pixel_values.shape[:2], dtype=torch.long)
@@ -60,4 +61,3 @@ def generate_korean_caption(image_path):
     end_time = time.time()
     runtime = end_time - start_time
     return korean_caption, runtime
-
