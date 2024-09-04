@@ -1,5 +1,3 @@
-# 현재 폴더에서 python app.py 먼저 해서 flask server부터 실행
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from captioning import generate_korean_caption
