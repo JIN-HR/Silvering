@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
 
 void main() => runApp(MyApp());
 
@@ -52,6 +53,8 @@ class _CaptioningAppState extends State<CaptioningApp> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null) {
+        print('Image selected: ${result.files.first.name}');
+        print('Image bytes: ${result.files.first.bytes?.length}');
       setState(() {
         _imageData = result.files.first.bytes;
       });
@@ -64,7 +67,7 @@ class _CaptioningAppState extends State<CaptioningApp> {
     if (_imageData == null) return; // 예외 처리 (실패 시 안내 메시지 표출)
 
     try {
-      final uri = Uri.parse("http://127.0.0.1:5000/generate_caption");
+      final uri = Uri.parse("http://10.0.2.2:5000/generate_caption");
 
       var request = http.MultipartRequest('POST', uri);
       var multipartFile = http.MultipartFile.fromBytes('image', _imageData!, filename: 'upload.jpg');
