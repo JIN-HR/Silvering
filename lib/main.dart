@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'pages/diary.dart';
-import 'pages/test.dart';
-import 'pages/location.dart';
-import 'pages/taxi.dart';
+import '/pages/test.dart';
+import '/pages/diary.dart';
+import '/pages/location.dart';
+import '/pages/taxi.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,65 +10,75 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MAIN',
+      title: 'GRAD_Project',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MainPage(),
+      home: HomePage(),
     );
   }
 }
 
-class MainPage extends StatelessWidget {
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null, // AppBar 제거
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 40), // 아이콘 위 패딩 추가
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+          children: [
+            SizedBox(height: 25), // 시간~배터리 부분 비워두기 (여기 원래 차는지 모르겠음)
+            Container(
+              color: Colors.blue, // 아이콘 박스의 background color
+              padding: EdgeInsets.all(10), // 아이콘과 박스 사이 간격
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.home, size: 40,  color: Color(0xFF4A4A4A)),
-                  Icon(Icons.person, size: 40,  color: Color(0xFF4A4A4A)),
+                  Icon(Icons.home, size: 40, color: Colors.white),
+                  Icon(Icons.person, size: 40, color: Colors.white),
                 ],
               ),
-              SizedBox(height: 30), // 이름 + 나이
-              Text(
-                '  이름 :  받아오기',
-                style: TextStyle(
-                    fontSize: 25, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A)),
+            ),
+            SizedBox(height: 30), // 상단 바 - 정보 사이 여백
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0), // 좌우 여백
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 이름과 나이 텍스트
+                  Text(
+                    '  이름 :  받아오기',
+                    style: TextStyle(
+                        fontSize: 27, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  Text(
+                    '  나이 :  받아오기',
+                    style: TextStyle(
+                        fontSize: 27, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  SizedBox(height: 40),
+                  _buildButtonGrid(context), // 버튼 Grid
+                  SizedBox(height: 40),
+                  _buildFooter(), // 하단 정보
+                ],
               ),
-              Text(
-                '  나이 :  받아오기',
-                style: TextStyle(
-                    fontSize: 25, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A)),
-              ),
-              SizedBox(height: 40),
-              _buildButtonGrid(context), // 버튼 -> 그리드
-              SizedBox(height: 40),
-              _buildFooter(), // 정보
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // 페이지 이동 버튼 그리드
+  // 페이지 이동 버튼
   Widget _buildButtonGrid(BuildContext context) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildMainButton(context, '접수 확인', Icons.arrow_right, TestPage()),
-            SizedBox(width: 10), // 버튼 간격
+            _buildMainButton(context, '점수 확인', Icons.arrow_right, TestPage()),
+            SizedBox(width: 10), // 버튼 간격 조정
             _buildMainButton(context, '일기 쓰기', Icons.arrow_right, DiaryPage()),
           ],
         ),
@@ -77,7 +87,7 @@ class MainPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildMainButton(context, '위치 공유', Icons.arrow_right, LocationPage()),
-            SizedBox(width: 10), // 버튼 간격
+            SizedBox(width: 10), // 버튼 간격 조정
             _buildMainButton(context, '이동 수단', Icons.arrow_right, TaxiPage()),
           ],
         ),
@@ -85,7 +95,7 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  // 버튼 빌드 함수
+  // 버튼 정보
   Widget _buildMainButton(BuildContext context, String label, IconData icon, Widget nextPage) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -102,23 +112,23 @@ class MainPage extends StatelessWidget {
         );
       },
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 아이템들을 버튼 내에서 공간을 효율적으로 차지하도록 조정
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         mainAxisSize: MainAxisSize.max, // 버튼 내 요소의 사이즈가 버튼 크기에 맞도록 확장
         children: [
-          Flexible( // 텍스트가 버튼 크기를 넘지 않도록 조정
+          Flexible( //
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 25, 
-                color: Colors.white, 
+                fontSize: 27,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
+              overflow: TextOverflow.visible, // 줄바꿈 on
             ),
           ),
-          SizedBox(width: 10),
           Icon(
             icon,
-            size: 50,
+            size: 60,
             color: Colors.white,
           ),
         ],
@@ -126,14 +136,15 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  // 하단 정보
+  // 하단 정보 부분
   Widget _buildFooter() {
     return Center( // 하단 글씨를 가운데 정렬
       child: Column(
         children: [
           Text(
             'COPYRIGHT 2024 BY 달리는 대방어',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 15, color: Colors.grey),
+            textAlign: TextAlign.center, // 텍스트 중앙 정렬
           ),
         ],
       ),
