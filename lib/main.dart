@@ -109,8 +109,8 @@ class MainPage extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 25, // 글자 크기 약간 조정
-                color: Colors.white, // 글자 색상을 흰색으로 설정
+                fontSize: 25, 
+                color: Colors.white, 
                 fontWeight: FontWeight.bold,
               ),
             ),
