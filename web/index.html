@@ -1,19 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -33,6 +21,26 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+
+    <h1>회원가입</h1>
+
+    <!-- 회원가입 폼 -->
+    <form method="POST" action="/signup">
+      <label for="signup_username">사용자 이름:</label>
+      <input type="text" id="signup_username" name="username" required><br>
+
+      <label for="signup_password">비밀번호:</label>
+      <input type="password" id="signup_password" name="password" required><br>
+
+      <input type="submit" value="회원가입">
+    </form>
+
+    <p>이미 회원가입을 하셨나요?</p>
+    <!-- 로그인하기 버튼 -->
+    <a href="/login">
+      <button>로그인하기</button>
+    </a>
+
+    <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

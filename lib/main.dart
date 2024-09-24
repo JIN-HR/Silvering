@@ -20,6 +20,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Home Page'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/second');
+          },
+          child: Text('Go to Second Page'),
+        ),
+      ),
+    );
+  }
+}
+
 class CaptioningApp extends StatefulWidget {
   @override
   _CaptioningAppState createState() => _CaptioningAppState();
