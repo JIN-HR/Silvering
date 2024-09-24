@@ -50,7 +50,8 @@ class _CaptioningAppState extends State<CaptioningApp> {
   String _caption = "";
 
   Future<void> _getImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result = await FilePicker.platform.pickFiles
+      (type: FileType.image, withData: true);
 
     if (result != null) {
         print('Image selected: ${result.files.first.name}');
