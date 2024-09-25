@@ -4,6 +4,7 @@ from transformers import VisionEncoderDecoderModel, ViTImageProcessor, GPT2Token
 from PIL import Image
 from googletrans import Translator
 import time
+from datetime import datetime
 
 # 이미지 전처리
 transform = transforms.Compose([
@@ -27,7 +28,7 @@ def load_image(image_path):
     return image
 
 # 영어 캡션 생성
-def generate_english_caption(image_path):
+def generate_english_caption(image_path, style="as if writing a gentle diary entry for reminiscing"):
     print('캡션 생성 중')
     image_tensor = load_image(image_path)
     pixel_values = feature_extractor(images=image_tensor, return_tensors="pt").pixel_values
@@ -52,12 +53,45 @@ def generate_english_caption(image_path):
 def translate_to_korean(english_caption):
     translated = translator.translate(english_caption, src='en', dest='ko')
     return translated.text
-
-# 캡션 생성
-def generate_korean_caption(image_path):
+def generate_korean_caption(image_path, year, month, day):
     start_time = time.time()
-    english_caption = generate_english_caption(image_path)
-    korean_caption = translate_to_korean(english_caption)
-    end_time = time.time()
-    runtime = end_time - start_time
+    korean_caption = "캡션 생성에 실패했습니다."  # 초기값 설정 (오류 발생 시 대비)
+    runtime = 0  # 기본값 설정
+
+    try:
+        # 캡션 생성
+        english_caption = generate_english_caption(image_path)
+
+        # 몇 년 전
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+        current_day = datetime.now().day
+
+
+        if current_year == int(year):
+            if current_month == int(month):
+                if current_day == int(day):
+                    time_ago = "today"
+                else:
+                    time_ago = f"{current_day - int(day)} days ago"
+            else:
+                time_ago = f"{current_month - int(month)} months ago"
+        else:
+            time_ago = f"{current_year - int(year)} years ago"
+
+        # 영어 캡션 생성
+        english_caption = f"Do you remember? This photo was taken {time_ago} ago, and as you see, there is " + english_caption
+
+        # 영어 -> 한국어 번역
+        korean_caption = translate_to_korean(english_caption)
+        end_time = time.time()
+        runtime = end_time - start_time
+
+        # 로그 출력
+        print(f"영어 캡션: {english_caption}")
+        print(f"한국어 캡션: {korean_caption}")
+        print(f"실행 시간: {runtime:.2f}초")
+    except Exception as e:
+        print(f"오류 발생: {e}")
+
     return korean_caption, runtime
