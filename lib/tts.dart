@@ -21,6 +21,12 @@ class TtsService {
 
   Future<void> speak(String text) async {
     await _tts.speak(text);
+    print("TTS 요청됨: $text"); // TTS 호출 후 텍스트 출력
+
+
+
+    var languages = await _tts.getLanguages;
+    print("지원되는 언어들: $languages"); // 지원되는 언어 목록 출력
   }
 
   Future<void> stop() async {
@@ -28,36 +34,3 @@ class TtsService {
   }
 }
 
-
-//// 다른 페이지 사용 예시
-// import 'package:flutter/material.dart';
-// import 'tts.dart';
-//
-// class TextToSpeechPage extends StatelessWidget {
-//   final TextEditingController ttsController = TextEditingController();
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text("TTS 예제"),
-//       ),
-//       body: Column(
-//         children: [
-//           SizedBox(height: 150),
-//           TextField(
-//             controller: ttsController,
-//             onTap: () {
-//               TtsService().speak(ttsController.text);
-//             },
-//           ),
-//           SizedBox(height: 10),
-//           ElevatedButton(
-//             onPressed: () => TtsService().speak(ttsController.text),
-//             child: Text("재생"),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'home.dart';
+import 'package:cyber_project/tts.dart';
 
 
 class DiaryPage extends StatefulWidget {
@@ -14,7 +15,7 @@ class DiaryPage extends StatefulWidget {
   _DiaryPageState createState() => _DiaryPageState();
 }
 
-class _DiaryPageState extends State<DiaryPage> {
+class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver{
   Uint8List? _imageData;
   String _caption = "";
   bool _isLoading = false; // 로딩 상태 추가
@@ -112,6 +113,11 @@ class _DiaryPageState extends State<DiaryPage> {
         setState(() {
           _caption = jsonResponse['caption'] ?? '캡션이 없습니다';
         });
+
+        // TTS로 캡션 읽기
+        if (_caption.isNotEmpty) {
+          TtsService().speak(_caption);  // 캡션이 있을 경우 읽기
+        }
       } else {
         print('캡션 생성 실패: 상태 코드 ${response.statusCode}');
         setState(() {
@@ -129,7 +135,26 @@ class _DiaryPageState extends State<DiaryPage> {
       });
     }
   }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // Observer 등록
+  }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Observer 해제
+    TtsService().stop(); // 화면이 사라질 때 TTS 중지
+    super.dispose();
+  }
+
+  // AppLifecycleState 감지
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      TtsService().stop(); // 앱이 백그라운드로 가거나 비활성화될 때 TTS 중지
+    }
+  }
 
 
   @override
