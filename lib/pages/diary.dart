@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
-import 'package:exif/exif.dart';  // EXIF 메타데이터 추출 패키지
+import 'package:exif/exif.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'home.dart';
+
 
 class DiaryPage extends StatefulWidget {
   @override
@@ -14,6 +17,10 @@ class DiaryPage extends StatefulWidget {
 class _DiaryPageState extends State<DiaryPage> {
   Uint8List? _imageData;
   String _caption = "";
+  bool _isLoading = false; // 로딩 상태 추가
+  String? _errorMessage;
+
+
   String? _imagePath;  // 이미지 파일 경로 저장
   String? _year;  // 촬영 연도
   String? _month; // 촬영 월
@@ -52,7 +59,7 @@ class _DiaryPageState extends State<DiaryPage> {
         final dateTimeOriginal = data['EXIF DateTimeOriginal']?.toString() ?? '촬영 날짜 없음';
 
         if (dateTimeOriginal != '촬영 날짜 없음') {
-          // 촬영 날짜 형식이 'YYYY:MM:DD HH:MM:SS'이므로 이를 분리
+          // 촬영 날짜 'YYYY:MM:DD HH:MM:SS'
           final dateParts = dateTimeOriginal.split(' ')[0].split(':');
           setState(() {
             _year = dateParts[0];
@@ -68,73 +75,175 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   Future<void> _uploadAndGetCaption() async {
-    if (_imageData == null || _year == null || _month == null || _day == null) return; // 예외 처리 (이미지 또는 날짜 정보가 없을 때)
+    if (_imageData == null || _year == null || _month == null || _day == null) {
+      setState(() {
+        _caption = '사진 또는 날짜 정보가 누락되었습니다!';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final uri = Uri.parse("http://10.0.2.2:5000/generate_caption");  // 로컬 서버 URL
-
       var request = http.MultipartRequest('POST', uri);
 
       // 이미지 파일을 multipart로 추가
       var multipartFile = http.MultipartFile.fromBytes('image', _imageData!, filename: 'upload.jpg');
       request.files.add(multipartFile);
 
-      // year, month, day 데이터를 함께 추가
-      request.fields['year'] = _year!;   // 연도 추가
-      request.fields['month'] = _month!; // 월 추가
-      request.fields['day'] = _day!;     // 일 추가
+      // year, month, day 추가
+      request.fields['year'] = _year!;
+      request.fields['month'] = _month!;
+      request.fields['day'] = _day!;
 
       // 서버로 요청 전송
       var response = await request.send();
 
       if (response.statusCode == 200) {
         final respStr = await response.stream.bytesToString();
+        print("서버 응답: $respStr"); // 디버깅용 출력 추가
+
         final jsonResponse = json.decode(respStr);
 
         setState(() {
-          _caption = jsonResponse['caption'];  // 서버로부터 받은 캡션 저장
+          _caption = jsonResponse['caption'] ?? '캡션이 없습니다';
         });
       } else {
-        print('Failed to generate caption. Status code: ${response.statusCode}');
+        print('캡션 생성 실패: 상태 코드 ${response.statusCode}');
+        setState(() {
+          _caption = '캡션 생성에 실패했습니다. 상태 코드: ${response.statusCode}';
+        });
       }
     } catch (e) {
-      print('Error occurred: $e');
+      print('오류 발생: $e');
       setState(() {
-        _caption = '일기 생성에 실패했습니다.';  // 예외 처리
+        _caption = '서버 요청 중 오류가 발생했습니다.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('일기 쓰기'),
+        backgroundColor: Color(0xFF5586E3),
+        leading: IconButton(
+          icon: Icon(Icons.home, color: Colors.white),
+          iconSize: 40, // 아이콘 크기 설정
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MyHomePage()),
+                  (Route<dynamic> route) => false,
+            ); // home.dart로
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person, color: Colors.white),
+            iconSize: 40, // 아이콘 크기 설정
+            onPressed: () {
+              // 사용자 정보 페이지로 이동
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              SizedBox(height: 50),
+              Text(
+                '“대방어” 님의 일기 ',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF5586E3),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 30),
               _imageData == null
-                  ? Text('사진을 선택해주세요!')
-                  : Image.memory(_imageData!),
-              SizedBox(height: 20),
+                  ? Text(
+                '사진을 선택해주세요!',
+                style: TextStyle(color: Colors.grey, fontSize: 20),
+              )
+                  : ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.memory(
+                  _imageData!,
+                  width: 300,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(height: 50),
               ElevatedButton(
                 onPressed: _getImage,
-                child: Text('사진 선택하기'),
+                child: Text(
+                  '사진 선택하기',
+                  style: TextStyle(fontSize: 20, fontWeight:FontWeight.w600), // 텍스트 크기 조정
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5586E3),
+                  foregroundColor: Colors.white, // 텍스트 색상을 흰색으로 설정
+                  fixedSize: Size(200, 60), // 버튼 크기 설정 (가로: 200, 세로: 60)
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30), // 둥근 모서리 설정
+                  ),
+                ),
               ),
+              SizedBox(height: 20), // 버튼 간격 조정
               ElevatedButton(
                 onPressed: _uploadAndGetCaption,
-                child: Text('일기 쓰기'),
+                child: Text(
+                  '일기 쓰기',
+                  style: TextStyle(fontSize: 20, fontWeight:FontWeight.w600), // 텍스트 크기 조정
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5586E3),
+                  foregroundColor: Colors.white, // 텍스트 색상을 흰색으로 설정
+                  fixedSize: Size(200, 60), // 버튼 크기 설정 (가로: 200, 세로: 60)
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30), // 둥근 모서리 설정
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
-              _caption.isNotEmpty ? Text('Caption: $_caption') : Container(),
-              SizedBox(height: 20),
-              // 촬영 날짜 출력
-              if (_year != null && _month != null && _day != null)
-                Text('촬영 날짜: $_year년 $_month월 $_day일'),
+
+              SizedBox(height: 40),
+              _isLoading
+                  ? CircularProgressIndicator()// 로딩 스피너
+                  : Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40), // 좌우 여백 설정
+                child: _caption.isNotEmpty
+                    ? Text(
+                  '“$_caption”',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Color(0xFF5586E3),
+                  ),
+                  textAlign: TextAlign.center,
+                )
+                    : Container(),
+              ),
+
+              SizedBox(height: 40),
+              Text(
+                'COPYRIGHT 2024 BY 달리는 대방어',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),

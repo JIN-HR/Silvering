@@ -1,3 +1,4 @@
+// test.dart : 인지 능력 검사
 import 'package:flutter/material.dart';
 
 class TestPage extends StatelessWidget {
@@ -8,7 +9,7 @@ class TestPage extends StatelessWidget {
         title: Text('인지 능력 검사'),
       ),
       body: Center(
-        child: Text('인지 능력 검사'),
+        child: Text('인지 능력 검사 페이지'),
       ),
     );
   }

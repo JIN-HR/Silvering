@@ -1,97 +1,101 @@
-import torch
-import torchvision.transforms as transforms
-from transformers import VisionEncoderDecoderModel, ViTImageProcessor, GPT2Tokenizer
+import openai
+import os
+import base64
+from dotenv import load_dotenv
 from PIL import Image
-from googletrans import Translator
 import time
 from datetime import datetime
+import requests
 
-# 이미지 전처리
-transform = transforms.Compose([
-    transforms.Resize((299, 299)),
-    transforms.CenterCrop((224, 224)),
-    transforms.ToTensor()
-])
+# OPENAI API KEY
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# 모델 & 토크나이저
-image_captioning_model_name = "nlpconnect/vit-gpt2-image-captioning"
-image_captioning_model = VisionEncoderDecoderModel.from_pretrained(image_captioning_model_name)
-feature_extractor = ViTImageProcessor.from_pretrained(image_captioning_model_name, do_rescale=False)
-image_captioning_tokenizer = GPT2Tokenizer.from_pretrained(image_captioning_model_name)
-
-translator = Translator()
-
-# 이미지 로드 & 전처리
+# 이미지 로드 및 전처리 함수
 def load_image(image_path):
     image = Image.open(image_path).convert('RGB')
-    image = transform(image).unsqueeze(0)  # 배치 차원 추가 (배치 차원 아직 완벽하게 이해 x -> 공부)
     return image
 
-# 영어 캡션 생성
-def generate_english_caption(image_path, style="as if writing a gentle diary entry for reminiscing"):
-    print('캡션 생성 중')
-    image_tensor = load_image(image_path)
-    pixel_values = feature_extractor(images=image_tensor, return_tensors="pt").pixel_values
-    attention_mask = torch.ones(pixel_values.shape[:2], dtype=torch.long)
+# 이미지를 Base64로 인코딩하는 함수
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
-    # 설명 길이 설정
-    outputs = image_captioning_model.generate(
-        pixel_values,
-        attention_mask=attention_mask,
-        max_length=50,
-        min_length=30,
-        num_beams=5,    # 빔 수
-        length_penalty=1.0,  # 길이 페널티
-        no_repeat_ngram_size=2,  # 중복 단어 생성 방지
-        early_stopping=True  # 설명 길면 stop!
-    )
-
-    english_caption = image_captioning_tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
-    return english_caption
-
-# 영->한 번역
-def translate_to_korean(english_caption):
-    translated = translator.translate(english_caption, src='en', dest='ko')
-    return translated.text
+# GPT-4 Vision을 사용하여 한국어 일기 형식 캡션 생성
 def generate_korean_caption(image_path, year, month, day):
     start_time = time.time()
-    korean_caption = "캡션 생성에 실패했습니다."  # 초기값 설정 (오류 발생 시 대비)
+    korean_caption = "캡션 생성에 실패했습니다."  # 초기값 설정
     runtime = 0  # 기본값 설정
 
-    try:
-        # 캡션 생성
-        english_caption = generate_english_caption(image_path)
+    # 날짜 계산
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
 
-        # 몇 년 전
-        current_year = datetime.now().year
-        current_month = datetime.now().month
-        current_day = datetime.now().day
-
-
-        if current_year == int(year):
-            if current_month == int(month):
-                if current_day == int(day):
-                    time_ago = "today"
-                else:
-                    time_ago = f"{current_day - int(day)} days ago"
+    # 날짜 차이 계산
+    if current_year == int(year):
+        if current_month == int(month):
+            if current_day == int(day):
+                time_ago = "오늘"
             else:
-                time_ago = f"{current_month - int(month)} months ago"
+                time_ago = f"{current_day - int(day)}일 전"
         else:
-            time_ago = f"{current_year - int(year)} years ago"
+            time_ago = f"{current_month - int(month)}개월 전"
+    else:
+        time_ago = f"{current_year - int(year)}년 전"
 
-        # 영어 캡션 생성
-        english_caption = f"Do you remember? This photo was taken {time_ago} ago, and as you see, there is " + english_caption
+    # 이미지 Base64 인코딩
+    base64_image = encode_image(image_path)
 
-        # 영어 -> 한국어 번역
-        korean_caption = translate_to_korean(english_caption)
-        end_time = time.time()
-        runtime = end_time - start_time
+    # 설명 요청을 위한 payload 구성
+    custom_prompt = (
+        f"{time_ago}에 촬영된 사진입니다. 이 사진이 찍힌 시기와 함께 사진에 대해 일기 형식의 설명을 한국어로 작성해 주세요."
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {openai.api_key}"
+    }
+    payload = {
+        "model": "gpt-4o",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": custom_prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 1000
+    }
 
-        # 로그 출력
-        print(f"영어 캡션: {english_caption}")
-        print(f"한국어 캡션: {korean_caption}")
+    # OpenAI API에 POST 요청
+    try:
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+        response.raise_for_status()  # HTTP 오류 발생 시 예외 발생
+
+        response_json = response.json()
+        if "choices" in response_json and response_json['choices']:
+            content = response_json['choices'][0]['message']['content']
+            korean_caption = content  # 캡션을 korean_caption에 저장
+        else:
+            print("Error in response:", response_json)
+
+        # 실행 시간 계산
+        runtime = time.time() - start_time
+        print(f"생성된 한국어 캡션: {korean_caption}")
         print(f"실행 시간: {runtime:.2f}초")
-    except Exception as e:
-        print(f"오류 발생: {e}")
 
+    except requests.RequestException as e:
+        print(f"API 요청 실패: {e}")
+
+    # 캡션과 실행 시간 반환
     return korean_caption, runtime
