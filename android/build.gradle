@@ -1,3 +1,5 @@
+// android/build.gradle
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -10,17 +12,19 @@ tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
 
-
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        //classpath 'com.android.tools.build:gradle:8.1.0'
+        // Android Gradle 플러그인 등 필요한 의존성
+        // classpath 'com.android.tools.build:gradle:8.1.0'
+
+        // Google 서비스 Gradle 플러그인 추가
+        classpath 'com.google.gms:google-services:4.4.2'
         classpath "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1"
     }
-
 }
 
 allprojects {

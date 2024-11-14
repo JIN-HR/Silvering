@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "77454724137",
+    "project_id": "yellowtail-6fdd3",
+    "storage_bucket": "yellowtail-6fdd3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:77454724137:android:fd5dfff97fc33db4692038",
+        "android_client_info": {
+          "package_name": "com.example.cyber_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCP4yHhGmdea5Q_GlAlsuxrW-wLnqEyBTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

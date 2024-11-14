@@ -3,10 +3,12 @@ from flask_cors import CORS
 from captioning import generate_korean_caption
 from flask_socketio import SocketIO, join_room, leave_room
 from flask_login import login_manager, login_user, login_required, current_user
+from test_eval import eval_response
 
 # CORS 설정
 app = Flask(__name__)
 CORS(app, resources={r"/generate_caption": {"origins": "*"}}) # origin allow
+CORS(app, resources={r"/evaluate": {"origins": "*"}}) # origin allow
 
 
 # 사용자 예제
@@ -23,21 +25,30 @@ class User:
     def get_id(self):
         return self.username
 
-#
-#
-# # 초기 화면: 회원가입 폼을 보여줌
-# @app.route('/', methods=['GET', 'POST'])
-# def signup():
-#     ## 회원가입 로직
-#     ## db에 전송
-#     return render_template('index.html')  # templates/index.html 파일을 렌더링
+### 기능 A
+@app.route('/evaluate', methods=['POST'])
+def evaluate():
+    # 클라이언트로부터 JSON 데이터 받기
+    data = request.get_json()  # 안전하게 JSON 데이터를 파싱합니다.
 
-#
-# # login
-# @app.route('/login', methods=['GET','POST'])
-# def login():
-#     ## 로그인 구현
-#     return render_template('login.html')
+    if not data or 'text' not in data or 'question_number' not in data:
+        return jsonify({"error": "Invalid data provided"}), 400
+
+    user_text = data['text']
+    question_number = data['question_number']  # question_number 값을 받음
+
+    # 평가 함수 호출
+    evaluation = eval_response(user_text, question_number)
+
+    # 응답 반환
+    return jsonify({"evaluation": evaluation})
+
+    # 평가 함수 호출 (예제로 eval_response_1을 사용)
+    evaluation = eval_response(user_text, question_number)
+
+    # 응답 반환
+    return jsonify({"evaluation": evaluation})
+
 
 # 기능 B
 @app.route('/generate_caption', methods=['GET', 'POST'])
@@ -65,6 +76,12 @@ def generate_caption():
         "runtime": runtime
     })
 
+
+
+
+
+
+
 # 소켓 연결
 socketio = SocketIO(app, async_mode="eventlet")
 
@@ -80,6 +97,10 @@ def connect():
     #     socketio.emit("caregiver", {"message": "Caregiver Connected"}, to=room)
     # elif current_user.role == "patient":
     #     socketio.emit("patient", {"message": "Patient Connected"}, to=room)
+
+
+
+
 
 
 # 보호자의 위치 업데이트

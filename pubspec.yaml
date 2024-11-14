@@ -45,6 +45,9 @@ dependencies:
   # tts
   flutter_tts: ^4.0.2
 
+  # stt
+  speech_to_text: ^6.1.1
+
   geolocator: ^13.0.1
   socket_io_client: ^3.0.0
   geolocator_android: ^4.6.1
@@ -53,11 +56,13 @@ dependencies:
   geocode: ^1.0.3
 
 
+
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   mongo_dart: ^0.10.3
-  cloud_firestore: ^5.4.4
+  firebase_core: ^3.7.0
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +80,29 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/fonts/
+  fonts:
+    - family: NanumGothic
+      fonts:
+        - asset: assets/fonts/NanumBarunGothic.ttf
+          weight: 500
+        - asset: assets/fonts/NanumBarunGothicBold.ttf
+          weight: 700
+        - asset: assets/fonts/NanumBarunGothicLight.ttf
+          weight: 400
+        - asset: assets/fonts/NanumBarunGothicUltraLight.ttf
+          weight: 300
+    - family: GmarketSansTTF
+      fonts:
+        - asset: assets/fonts/GmarketSansTTFBold.ttf
+          weight: 700
+        - asset: assets/fonts/GmarketSansTTFLight.ttf
+          weight: 300
+        - asset: assets/fonts/GmarketSansTTFMedium.ttf
+          weight: 500
+
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
