@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'pages/home.dart'; // 실제 홈 페이지로 사용될 페이지
 
-void main() => runApp(MyApp());
+//firebase login
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
+void main() async { // main 함수 비동기로 변경
+  WidgetsFlutterBinding.ensureInitialized(); // Flutter 초기화
+  await Firebase.initializeApp( // Firebase 초기화
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp()); // MyApp 실행
+}
+
+
+//login 추가 전 main.dart
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
