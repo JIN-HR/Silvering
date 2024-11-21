@@ -4,15 +4,22 @@ from captioning import generate_korean_caption
 from flask_socketio import SocketIO, join_room, leave_room
 from flask_login import login_manager, login_user, login_required, current_user
 from test_eval import eval_response
+#login
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
 
 # CORS 설정
 app = Flask(__name__)
 CORS(app, resources={r"/generate_caption": {"origins": "*"}}) # origin allow
 CORS(app, resources={r"/evaluate": {"origins": "*"}}) # origin allow
 
+# Firebase 초기화
+cred = credentials.Certificate("yellowtail-6fdd3-firebase-adminsdk-tl2lj-52cb6471ad.json")
+firebase_admin.initialize_app(cred)
 
-# 사용자 예제
-users = {"alice": {"role": "protector"}, "alice": {"role": "client"}}
+# Firestore 참조 생성
+db = firestore.client()
+
 
 class User:
     def __init__(self, username, role):
@@ -78,6 +85,46 @@ def generate_caption():
 
 
 
+##login
+@app.route('/get_user_role', methods=['GET'])
+def get_user_role():
+    user_id = request.args.get('userId')
+    if not user_id:
+        return jsonify({"error": "Missing userId"}), 400
+
+    try:
+        # Firestore에서 사용자 역할 조회
+        user_doc = db.collection('users').document(user_id).get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            return jsonify({"role": user_data.get("role")})
+        else:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    if not data or 'userId' not in data or 'role' not in data:
+        return jsonify({"error": "Invalid data"}), 400
+
+    user_id = data['userId']
+    role = data['role']
+    guardian_id = data.get('guardianId')  # 피보호자일 경우 보호자 ID
+
+    try:
+        user_data = {
+            "role": role,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+        }
+        if role == "dependent" and guardian_id:
+            user_data["guardianId"] = guardian_id
+
+        db.collection('users').document(user_id).set(user_data)
+        return jsonify({"message": "User added successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
@@ -86,32 +133,43 @@ def generate_caption():
 socketio = SocketIO(app, async_mode="eventlet")
 
 @socketio.on("connect")
-# @login_required
-def connect():
-    # room = current_user.get_id()
-    room = "alice"
-    join_room(room)
+def connect(data):
+    user_id = data.get("userId")  # 클라이언트에서 전달된 userId 사용
+    if not user_id:
+        return  # userId가 없으면 종료
 
-    # 피보호자와 보호자를 구분, 같은 room에 넣기
-    # if current_user.role == "caregiver":
-    #     socketio.emit("caregiver", {"message": "Caregiver Connected"}, to=room)
-    # elif current_user.role == "patient":
-    #     socketio.emit("patient", {"message": "Patient Connected"}, to=room)
+    # Firebase에서 역할 가져오기
+    user_doc = db.collection('users').document(user_id).get()
+    if not user_doc.exists():
+        return  # 사용자가 존재하지 않으면 종료
 
+    user_role = user_doc.to_dict().get("role")
+    join_room(user_id)
 
+    if user_role == "guardian":
+        socketio.emit("message", {"message": "Guardian connected"}, room=user_id)
+    elif user_role == "dependent":
+        socketio.emit("message", {"message": "Dependent connected"}, room=user_id)
 
 
 
 
 # 보호자의 위치 업데이트
 @socketio.on("location_update")
-# @login_required
 def location_update(data):
-    role = "patient"
-    room = "alice"
-    if role == "patient":
-        socketio.emit("location_update", data, room=room)
+    user_id = data.get("userId")
+    if not user_id:
+        return
 
+    user_doc = db.collection('users').document(user_id).get()
+    if not user_doc.exists:
+        return
+
+    user_role = user_doc.to_dict().get("role")
+    if user_role == "dependent":
+        guardian_id = user_doc.to_dict().get("guardianId")
+        if guardian_id:
+            socketio.emit("location_update", data, room=guardian_id)
 
 @socketio.on("location_request")
 # @login_required

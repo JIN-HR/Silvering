@@ -49,7 +49,7 @@ def generate_korean_caption(image_path, year, month, day):
 
     # 설명 요청을 위한 payload 구성
     custom_prompt = (
-        f"{time_ago}에 촬영된 사진입니다. 이 사진이 찍힌 시기와 함께 사진에 대해 일기 형식의 설명을 한국어로 작성해 주세요."
+        f"{time_ago}에 촬영된 사진입니다.사진을 회상하듯 일기를 한국어로 작성해 주세요. 이 때 사진이 찍힌 날짜를 현재로부터 얼마 전인지 자연스럽게 포함시켜 작성해주세요."
     )
     headers = {
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ def generate_korean_caption(image_path, year, month, day):
                 ]
             }
         ],
-        "max_tokens": 1000
+        "max_tokens": 300
     }
 
     # OpenAI API에 POST 요청
