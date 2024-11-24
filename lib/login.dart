@@ -1,17 +1,19 @@
+import 'package:cyber_project/roleSelect.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:cyber_project/firebase_options.dart';
 
 import 'package:flutter/material.dart';
-import 'roleSelect.dart';
-import 'signup.dart';
-import 'login.dart';
+import 'pages/dependantPages/dependentHome.dart';
+import 'pages/guardianPages/guardianHome.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform); // Firebase 초기화
   runApp(LoginApp());
 }
-
 
 class LoginApp extends StatelessWidget {
   @override
@@ -21,32 +23,27 @@ class LoginApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'GmarketSansTTF',
       ),
-      home: LoginPage(), // 초기 화면을 loginPage로 설정
+      home: LoginPage(), // 초기 화면을 LoginPage로 설정
     );
   }
 }
 
 class LoginPage extends StatelessWidget {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  //const LoginPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Container(
-          margin: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _header(context),
-              _inputField(context),
-              _forgotPassword(context),
-              _signup(context),
-            ],
-          ),
+    return Scaffold(
+      body: Container(
+        margin: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _header(context),
+            _inputField(context),
+            _signup(context),
+          ],
         ),
       ),
     );
@@ -56,7 +53,7 @@ class LoginPage extends StatelessWidget {
     return const Column(
       children: [
         Text(
-          "보호자 계정 로그인",
+          "로그인",
           style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
         ),
       ],
@@ -68,49 +65,89 @@ class LoginPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          controller: _idController,
           decoration: InputDecoration(
-              hintText: "아이디",
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: BorderSide.none),
-              fillColor: Color(0xFFFA8072).withOpacity(0.1),
-              filled: true,
-              prefixIcon: const Icon(Icons.person)),
+            hintText: "아이디",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+            fillColor: Color(0xFFFA8072).withOpacity(0.1),
+            filled: true,
+            prefixIcon: const Icon(Icons.person),
+          ),
         ),
         const SizedBox(height: 10),
         TextField(
+          controller: _passwordController,
+          obscureText: true,
           decoration: InputDecoration(
             hintText: "비밀번호",
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
             fillColor: Color(0xFFFA8072).withOpacity(0.1),
             filled: true,
-            prefixIcon: const Icon(Icons.password),
+            prefixIcon: const Icon(Icons.lock),
           ),
-          obscureText: true,
         ),
-        // const SizedBox(height: 10,),
-        // ElevatedButton(onPressed: () {}, child: child)
-
         const SizedBox(height: 10),
         ElevatedButton(
           onPressed: () async {
-            // Firebase Authentication으로 로그인
-            try {
-              // UserCredential userCredential = await FirebaseAuth.instance
-              //     .signInWithEmailAndPassword(
-              //         email: _emailController.text.trim(),
-              //         password: _passwordController.text.trim());
-              // 로그인 성공 시 역할 선택 화면으로 이동
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => RoleSelectionPage(
-                        userId: 'alice')), //userCredential.user!.uid)),
+            String id = _idController.text.trim();
+            String password = _passwordController.text.trim();
+
+            if (id.isEmpty || password.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('아이디와 비밀번호를 입력하세요.')),
               );
+              return;
+            }
+
+            try {
+              // Firestore에서 ID로 사용자 검색
+              final querySnapshot = await FirebaseFirestore.instance
+                  .collection('users')
+                  .where('id', isEqualTo: id)
+                  .get();
+
+              if (querySnapshot.docs.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('아이디가 존재하지 않습니다.')),
+                );
+                return;
+              }
+
+              final userDoc = querySnapshot.docs.first;
+              final storedPassword = userDoc['password'];
+              final role = userDoc['role'];
+
+              if (storedPassword != password) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
+                );
+                return;
+              }
+
+              // 역할에 따라 대시보드로 이동
+              if (role == 'guardian') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Guardianhome()),
+                );
+              } else if (role == 'dependent') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Dependenthome()),
+                );
+              } else {
+                throw Exception('유효하지 않은 역할입니다.');
+              }
             } catch (e) {
-              print("Login failed: $e");
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('로그인 실패: $e')),
+              );
             }
           },
           style: ElevatedButton.styleFrom(
@@ -126,18 +163,8 @@ class LoginPage extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-        )
+        ),
       ],
-    );
-  }
-
-  _forgotPassword(context) {
-    return TextButton(
-      onPressed: () {},
-      child: const Text(
-        "비밀번호를 까먹었나요?",
-        style: TextStyle(fontSize: 20, color: Color(0xFFFA8072)),
-      ),
     );
   }
 
@@ -150,29 +177,21 @@ class LoginPage extends StatelessWidget {
           style: TextStyle(fontSize: 20),
         ),
         TextButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SignupPage()));
-            },
-            child: const Text(
-              "회원가입",
-              style: TextStyle(fontSize: 20, color: Color(0xFFFA8072)),
-            ))
-      ],
-    );
-  }
-
-  Widget _buildFooter() {
-    return Center(
-      child: Column(
-        children: [
-          Text(
-            'COPYRIGHT 2024 BY 달리는 대방어',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-            textAlign: TextAlign.center,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RoleSelectionPage(guardianId: null), // guardianId를 null로 전달
+              ),
+            );
+          },
+          child: const Text(
+            "회원가입하기",
+            style: TextStyle(fontSize: 20, color: Color(0xFFFA8072)),
           ),
-        ],
-      ),
+        ),
+
+      ],
     );
   }
 }

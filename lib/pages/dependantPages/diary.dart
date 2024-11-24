@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'home.dart';
+import '../home.dart';
 import 'package:cyber_project/tts.dart';
 
 class DiaryPage extends StatefulWidget {

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'pages/home.dart'; // 실제 홈 페이지로 사용될 페이지
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'login.dart';
 
 //firebase login
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +14,8 @@ void main() async { // main 함수 비동기로 변경
   await Firebase.initializeApp( // Firebase 초기화
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  //TODO: 앱 실행 시 강제 로그아웃 - test용 (로그인 유지 시 이 줄 제거하기)
+  await FirebaseAuth.instance.signOut();
   runApp(MyApp()); // MyApp 실행
 }
 
@@ -23,8 +29,24 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'GmarketSansTTF',
       ),
-      home: InitialPage(), // 초기 화면을 InitialPage로 설정
+      home: AuthChecker(), // 초기 화면을 InitialPage로 설정
     );
+  }
+}
+
+class AuthChecker extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // 현재 로그인된 사용자 가져오기
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // 로그인 상태라면 home.dart로 이동
+      return HomeApp();
+    } else {
+      // 로그아웃 상태라면 login.dart로 이동
+      return LoginApp();
+    }
   }
 }
 
@@ -73,7 +95,7 @@ class InitialPage extends StatelessWidget { // 초기 화면 클래스
   Widget _buildMainButton(BuildContext context, String label, IconData icon, Widget nextPage) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF5586E3),
+        backgroundColor: Color(0xFFFA8072),
         fixedSize: Size(360, 100),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),

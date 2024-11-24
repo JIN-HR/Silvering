@@ -1,10 +1,10 @@
 // home.dart : 메인 홈
 
 import 'package:flutter/material.dart';
-import 'test.dart'; // 인지 능력 검사 페이지
-import 'diary.dart'; // 일기 쓰기 페이지
-import 'location.dart'; // 위치 공유 페이지
-import 'chat.dart'; // 전문가 상담 페이지
+import 'dependantPages/test.dart'; // 인지 능력 검사 페이지
+import 'dependantPages/diary.dart'; // 일기 쓰기 페이지
+import 'guardianPages/location.dart'; // 위치 공유 페이지
+import 'guardianPages/chat.dart'; // 전문가 상담 페이지
 
 class HomeApp extends StatelessWidget {
   @override
@@ -24,7 +24,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF5586E3),
+        backgroundColor: Color(0xFFFA8072),
         leading: IconButton(
           icon: Icon(Icons.home, color: Colors.white),
           iconSize: 40, // 아이콘 크기 설정
@@ -98,7 +98,7 @@ class MyHomePage extends StatelessWidget {
   Widget _buildMainButton(BuildContext context, String label, IconData icon, Widget nextPage) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF5586E3),
+        backgroundColor: Color(0xFFFA8072),
         fixedSize: Size(360, 100),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
