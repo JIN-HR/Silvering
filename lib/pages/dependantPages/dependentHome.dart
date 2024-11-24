@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'test.dart'; // 인지 능력 검사 페이지
 import 'diary.dart'; // 일기 쓰기 페이지
-//import 'game.dart'; //게임 페이지
+
+import '../userinfo.dart';
+import 'game.dart'; //게임 페이지
 //import 'chat.dart'; // 전문가 상담 페이지
 
 class Dependenthome extends StatelessWidget {
@@ -35,7 +37,12 @@ class DependentDashboard extends StatelessWidget {
             icon: Icon(Icons.person, color: Colors.white),
             iconSize: 40, // 아이콘 크기 설정
             onPressed: () {
-              // 사용자 정보 페이지로 이동
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => InfoPage(userRole: 'dependent')),
+                    (Route<dynamic> route) => false,
+              );              // 사용자 정보 페이지로 이동
             },
           ),
         ],
@@ -55,14 +62,14 @@ class DependentDashboard extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 27,
                         fontWeight: FontWeight.w400,
-                        color: Colors.grey),
+                        color: Colors.grey[700]),
                   ),
                   Text(
                     '  나이 :  76세',
                     style: TextStyle(
                         fontSize: 27,
                         fontWeight: FontWeight.w400,
-                        color: Colors.grey),
+                        color: Colors.grey[700]),
                   ),
                   SizedBox(height: 40),
                   _buildButtonGrid(context),
@@ -86,6 +93,8 @@ class DependentDashboard extends StatelessWidget {
         children: [
           _buildMainButton(context, '인지 검사', Icons.arrow_right, TestPage()),
           SizedBox(height: 20), // Add space between buttons
+          _buildMainButton(context, '두뇌 게임', Icons.arrow_right, GamePage()),
+          SizedBox(height: 20),
           _buildMainButton(context, '일기 쓰기', Icons.arrow_right, DiaryPage()),
           SizedBox(height: 20),
           //_buildMainButton(context, '게임', Icons.arrow_right, GamePage()),
@@ -102,7 +111,7 @@ class DependentDashboard extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFFFA8072),
-        fixedSize: Size(360, 100),
+        fixedSize: Size(360, 80),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
@@ -140,18 +149,20 @@ class DependentDashboard extends StatelessWidget {
     );
   }
 
-  // 하단 정보 부분
-  Widget _buildFooter() {
-    return Center(
-      child: Column(
-        children: [
-          Text(
-            'COPYRIGHT 2024 BY 달리는 대방어',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
+}
+
+// 하단 정보 부분
+Widget _buildFooter() {
+  return Center(
+    child: Column(
+      children: [
+        Text(
+          'COPYRIGHT 2024 BY 달리는 대방어',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height:20),
+      ],
+    ),
+  );
 }

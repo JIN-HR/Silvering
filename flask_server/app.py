@@ -8,14 +8,33 @@ from test_eval import eval_response
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 
+#firebase certificate
+import os, json
+from dotenv import load_dotenv
+
 # CORS 설정
 app = Flask(__name__)
 CORS(app, resources={r"/generate_caption": {"origins": "*"}}) # origin allow
 CORS(app, resources={r"/evaluate": {"origins": "*"}}) # origin allow
 
 # Firebase 초기화
-cred = credentials.Certificate("yellowtail-6fdd3-firebase-adminsdk-tl2lj-52cb6471ad.json")
+# .env 파일 로드
+load_dotenv()
+
+# FIREBASE_CERTIFICATE에서 값 읽기
+firebase_cert = os.getenv("FIREBASE_CERTIFICATE")
+
+# 방법 1: 경로 사용
+if firebase_cert.endswith('.json'):  # 파일 경로인 경우
+    cred = credentials.Certificate(firebase_cert)
+
+# 방법 2: JSON 내용 사용
+else:
+    cert_dict = json.loads(firebase_cert)  # 문자열을 딕셔너리로 변환
+    cred = credentials.Certificate(cert_dict)
+
 firebase_admin.initialize_app(cred)
+
 
 # Firestore 참조 생성
 db = firestore.client()

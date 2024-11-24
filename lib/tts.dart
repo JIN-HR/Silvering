@@ -26,7 +26,6 @@ class TtsService {
 
 
     var languages = await _tts.getLanguages;
-    print("지원되는 언어들: $languages"); // 지원되는 언어 목록 출력
   }
 
   Future<void> stop() async {

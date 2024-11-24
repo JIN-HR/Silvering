@@ -1,12 +1,13 @@
 // test.dart : 인지 능력 검사
 import 'package:flutter/material.dart';
-import '../home.dart';
 import '../userinfo.dart';
 import 'package:cyber_project/tts.dart';
 import 'package:cyber_project/stt.dart';
 //test_eval.py에 전송
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'dependentHome.dart';
 
 class TestPage extends StatefulWidget {
   @override
@@ -22,6 +23,7 @@ class _TestPageState extends State<TestPage> {
   int selectedMonth = 1;
   int selectedDay = 1;
   String educationLevel = '무학'; // 학력
+  Map<String, int> categoryScores = {}; // 카테고리별 점수 저장
 
   //tts 인스턴스
   TtsService ttsService = TtsService();
@@ -40,34 +42,42 @@ class _TestPageState extends State<TestPage> {
   final List<Map<String, dynamic>> questions = [
     {
       'ques_num': 1,
+      'category':'지남력',
       'question': '1. 오늘 날짜에 대한 질문입니다. \n 응답하기 버튼을 눌러주세요. \n (1) 오늘은 몇 년도인가요?',
       'ttsText': '오늘 날짜에 대한 질문입니다. 오늘은 몇 년도인지 응답하기 버튼을 누르고 연도를 말씀해주세요.',
       'options': [
         {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
       'ques_num': 1,
+      'category':'지남력',
       'question': '1.  오늘 날짜에 대한 질문입니다. \n 응답하기 버튼을 눌러주세요. \n (2) 오늘은 몇 월인가요?',
       'ttsText': '이어지는 오늘 날짜에 대한 질문입니다. 오늘은 몇 월인지 응답하기 버튼을 누르고 연도를 말씀해주세요.',
       'options': [
         {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
       'ques_num': 1,
+      'category':'지남력',
       'question': '1. 오늘 날짜에 대한 질문입니다. \n 응답하기 버튼을 눌러주세요. \n (3) 오늘은 며칠인가요?',
       'ttsText': '이어지는 오늘 날짜에 대한 질문입니다. 오늘은 며칠인지 응답하기 버튼을 누르고 며칠인지를 말씀해주세요.',
       'options': [
         {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
       'ques_num': 1,
+      'category':'지남력',
       'question': '1. 오늘 날짜에 대한 질문입니다. \n 응답하기 버튼을 눌러주세요. \n (4) 오늘은 무슨 요일인가요?',
       'ttsText': '마지막 오늘 날짜에 대한 질문입니다. 응답하기 버튼을 누르고 오늘이 무슨 요일인지를 말씀해주세요.',
       'options': [
         {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
@@ -78,7 +88,8 @@ class _TestPageState extends State<TestPage> {
       '2번 문제입니다. 지금부터 외우셔야 하는 문장 하나를 불러드리겠습니다. 한 번만 들려드리니, 끝까지 잘 듣고 따라해주세요.',
       'options': [
         {'text': '듣기'},
-        {'text': '응답하기'}
+        {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
@@ -88,7 +99,8 @@ class _TestPageState extends State<TestPage> {
       'ttsText': '잘 하셨습니다. 다시 한 번 불러드리겠습니다.  이번에도 다시 여쭈어 볼 테니 잘 듣고 따라 해 보세요.',
       'options': [
         {'text': '듣기'},
-        {'text': '응답하기'}
+        {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
@@ -100,46 +112,44 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'ques_num': 3,
+      'category':'주의력',
       'question':
       '3-1. 부르는 숫자 바로 따라 말하기 \n 제가 불러드리는 숫자를 그대로 따라 해 주세요. \n 한 번만 불러드릴 수 있으니 잘 들어 주세요. ',
       'ttsText':
       '다음으로 3번 문제입니다.  제가 불러드리는 숫자를 그대로 따라 해 주세요. 한 번만 불러드릴 수 있으니 잘 들어 주세요. 6   9   7  3',
       'options': [
         {'text': '듣기'},
-        {'text': '응답하기'}
+        {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
       'ques_num': 3,
+      'category':'주의력',
       'question':
       '3-2. 부르는 숫자 바로 따라 말하기 \n 제가 불러드리는 숫자를 그대로 따라 해 주세요. \n 한 번만 불러드릴 수 있으니 잘 들어 주세요. ',
       'ttsText':
       '다른 숫자를 불러드리겠습니다. 제가 불러드리는 숫자를 그대로 따라 해 주세요. 한 번만 불러드릴 수 있으니 잘 들어 주세요. 5  7  2  8  4',
       'options': [
         {'text': '듣기'},
-        {'text': '응답하기'}
+        {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
       'ques_num': 4,
+      'category':'주의력',
       'question': '4. 거꾸로 말하기 \n 제가 불러드리는 말을 끝에서부터 거꾸로 따라 해 주세요.',
       'ttsText': '다음 문제입니다. 제가 불러드리는 말을 끝에서부터 거꾸로 따라 해 주세요. 금,  수,  강,  산',
       'options': [
         {'text': '듣기'},
-        {'text': '응답하기'}
+        {'text': '응답하기'},
+        {'text': '넘어가기'},
       ],
     },
     {
-      'question': '7. 시공간 기능 ',
-      'ttsText': '',
-      'options': [
-        {'text': '선택지 1', 'score': 1},
-        {'text': '선택지 2', 'score': 1},
-        {'text': '선택지 3', 'score': 1},
-      ],
-    },
-    {
-      'question': '세 가지 모양이 정해진 순서로 나오고 있습니다. 빈칸 안에 들어갈 도형은 무엇인가요?',
+      'category':'시공간 기능',
+      'question': '5. 세 가지 모양이 정해진 순서로 나오고 있습니다. 빈칸 안에 들어갈 도형은 무엇인가요?',
       'image': 'lib/pictures/Q7.png',
       'options': [
         {'text': '1 (네모)', 'score': 0},
@@ -148,8 +158,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'question':
-      '네 칸 중 한 칸에 별이 하나 있고, 별은 그림 순서대로 다른 위치로 이동합니다. 마지막 그림 속 별이 들어갈 위치는 어디인가요?',
+      'category':'시공간 기능',
+      'question': '6. 네 칸 중 한 칸에 별이 하나 있고, 별은 그림 순서대로 다른 위치로 이동합니다. 마지막 그림 속 별이 들어갈 위치는 어디인가요?',
       'image': 'lib/pictures/Q8.png',
       'options': [
         {'text': '1', 'score': 0},
@@ -159,7 +169,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'question': '카드에 숫자와 계절이 하나씩 적혀 있습니다. 빨간색 카드에 들어갈 말을 선택해주세요.',
+      'category':'시공간 기능',
+      'question': '7. 카드에 숫자와 계절이 하나씩 적혀 있습니다. 빨간색 카드에 들어갈 말을 선택해주세요.',
       'image': 'lib/pictures/Q9.png',
       'options': [
         {'text': '4', 'score': 1},
@@ -169,7 +180,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'question': '카드에 숫자와 계절이 하나씩 적혀 있습니다. 파란색 카드에 들어갈 말을 선택해주세요.',
+      'category':'시공간 기능',
+      'question': '7. 카드에 숫자와 계절이 하나씩 적혀 있습니다. 파란색 카드에 들어갈 말을 선택해주세요.',
       'image': 'lib/pictures/Q10.png',
       'options': [
         {'text': '4', 'score': 0},
@@ -179,8 +191,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'ques_num': 9,
-      'question': '9-1. 기억력 \n 앞서 제가 어떤 사람의 이름을 말했는데 누구일까요? ',
+      'category':'기억력',
+      'question': '8-1. 기억력 \n 앞서 제가 어떤 사람의 이름을 말했는데 누구일까요? ',
       'ttsText':
       '다음 문제입니다. 제가 앞서 외우라고 말씀드린 문장이 기억 나시나요? 그 문제에 대한 질문입니다. 앞서 제가 어떤 사람의 이름을 말했는데 누구일까요?',
       'options': [
@@ -190,7 +202,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'question': '9-2. 기억력 \n 무엇을 타고 갔습니까? ',
+      'category':'기억력',
+      'question': '8-2. 기억력 \n 무엇을 타고 갔습니까? ',
       'ttsText': '그 사람이 무엇을 타고 갔습니까? ',
       'options': [
         {'text': '버스', 'score': 0},
@@ -199,8 +212,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'ques_num': 9,
-      'question': '9-3. 기억력 \n 어디에 갔습니까? ',
+      'category':'기억력',
+      'question': '8-3. 기억력 \n 어디에 갔습니까? ',
       'ttsText': '그 사람이 어디에 갔습니까? ',
       'options': [
         {'text': '공원', 'score': 1},
@@ -209,8 +222,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'ques_num': 9,
-      'question': '9-4. 기억력 \n 몇 시부터 했습니까?',
+      'category':'기억력',
+      'question': '8-4. 기억력 \n 몇 시부터 했습니까?',
       'ttsText': '몇 시부터 했습니까? ',
       'options': [
         {'text': '10시', 'score': 1},
@@ -219,8 +232,8 @@ class _TestPageState extends State<TestPage> {
       ],
     },
     {
-      'ques_num': 9,
-      'question': '9-5. 기억력 \n 무엇을 했습니까?',
+      'category':'기억력',
+      'question': '8-5. 기억력 \n 무엇을 했습니까?',
       'ttsText': '무엇을 했습니까?',
       'options': [
         {'text': '농구', 'score': 1},
@@ -243,15 +256,26 @@ class _TestPageState extends State<TestPage> {
   void nextQuestion(int score) {
     setState(() {
       totalScore += score;
-      if (currentIndex < questions.length) {
+
+      // 카테고리별 점수 계산
+      String? category = questions[currentIndex]['category'];
+      if (category != null) {
+        categoryScores[category] = (categoryScores[category] ?? 0) + score;
+      }
+
+      if (currentIndex < questions.length - 1) {
         currentIndex++;
-        String ttsPrompt = questions[currentIndex - 1]['ttsText']; // 변경된 필드 사용
-        ttsService.speak(ttsPrompt); // 변경된 텍스트를 읽습니다.
+        String ttsPrompt = questions[currentIndex]['ttsText'] ?? ''; // TTS 텍스트 가져오기
+        ttsService.speak(ttsPrompt); // TTS 안내
       } else {
+        // 마지막 질문 이후 결과 페이지로 이동
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultPage(score: totalScore),
+            builder: (context) => ResultPage(
+              score: totalScore,
+              categoryScores: categoryScores, // 추가
+            ),
           ),
         ).then((_) {
           ttsService.speak("검사가 완료되었습니다. 총 점수는 $totalScore점입니다.");
@@ -259,6 +283,7 @@ class _TestPageState extends State<TestPage> {
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +308,7 @@ class _TestPageState extends State<TestPage> {
         onPressed: () {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => MyHomePage()),
+            MaterialPageRoute(builder: (context) => DependentDashboard()),
                 (Route<dynamic> route) => false,
           );
         },
@@ -293,10 +318,11 @@ class _TestPageState extends State<TestPage> {
           icon: Icon(Icons.person, color: Colors.white),
           iconSize: 40,
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
+            Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => InfoPage()),
-                  (Route<dynamic> route) => false,
+              MaterialPageRoute(
+                builder: (context) => InfoPage(userRole: 'dependent'),
+              ),
             );
           },
         ),
@@ -562,27 +588,48 @@ class _TestPageState extends State<TestPage> {
   // 다음 질문으로 진행하는 함수
   void proceedToNextQuestion(int score) {
     setState(() {
+      // 현재 질문 가져오기
+      var currentQuestion = questions[currentIndex];
+
+      // 카테고리가 존재하면 점수 계산
+      if (currentQuestion.containsKey('category')) {
+        String category = currentQuestion['category'];
+        // 해당 카테고리 점수 업데이트
+        categoryScores[category] = (categoryScores[category] ?? 0) + score;
+      } else {
+        // 카테고리가 없는 경우 점수를 추가하지 않음
+        print("카테고리가 없는 질문입니다. 점수를 추가하지 않습니다.");
+      }
+
+      // 총점 업데이트
       totalScore += score;
+
+      // 다음 질문으로 이동
       if (currentIndex < questions.length - 1) {
-        // 다음 질문을 준비하고 확인 메시지를 출력
         currentIndex++;
         ttsService.speak("확인되었습니다. 다음 질문으로 넘어가겠습니다.").then((_) {
-          // 다음 질문의 TTS 안내 시작
           String ttsPrompt =
               questions[currentIndex - 1]['ttsText'] ?? "다음 질문을 확인하세요.";
           ttsService.speak(ttsPrompt);
         });
       } else {
+        // 검사 완료
         ttsService.speak("검사가 완료되었습니다.").then((_) {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ResultPage(score: totalScore)),
+              builder: (context) => ResultPage(
+                score: totalScore,
+                categoryScores: categoryScores, // 추가
+              ),
+            ),
           );
+
         });
       }
     });
   }
+
 
   // 퀴즈 화면에서 '듣기', '응답하기', '넘어가기' 버튼 처리를 구현
   Widget buildQuestionPage() {
@@ -621,9 +668,15 @@ class _TestPageState extends State<TestPage> {
                   String buttonText = option['text'];
                   if (buttonText == '듣기') {
                     handleListen(); // '듣기' 버튼 기능 호출
+                  } else if (buttonText == '넘어가기') {
+                    // '넘어가기' 버튼일 경우 바로 다음 질문으로 이동
+                    proceedToNextQuestion(0);
+                  } else if (option.containsKey('score')) {
+                    int score = option['score']; // 선택지의 점수 가져오기
+                    proceedToNextQuestion(score); // 점수를 반영하며 다음 질문으로 이동
                   } else {
-                    handleResponse(
-                        buttonText: buttonText); // '응답하기' 또는 '넘어가기' 버튼 처리
+                    // '응답하기' 버튼 처리
+                    handleResponse(buttonText: buttonText);
                   }
                 },
                 child: Text(
@@ -641,8 +694,9 @@ class _TestPageState extends State<TestPage> {
 
 class ResultPage extends StatelessWidget {
   final int score;
+  final Map<String, int> categoryScores;
 
-  ResultPage({required this.score});
+  ResultPage({required this.score, required this.categoryScores});
 
   @override
   Widget build(BuildContext context) {
@@ -652,36 +706,55 @@ class ResultPage extends StatelessWidget {
         backgroundColor: Color(0xFFFA8072),
         leading: IconButton(
           icon: Icon(Icons.home, color: Colors.white),
-          iconSize: 40, // 아이콘 크기 설정
+          iconSize: 40,
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => MyHomePage()),
+              MaterialPageRoute(builder: (context) => DependentDashboard()),
                   (Route<dynamic> route) => false,
-            ); // home.dart로
+            );
           },
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.person, color: Colors.white),
-            iconSize: 40, // 아이콘 크기 설정
+            iconSize: 40,
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => InfoPage()),
-                    (Route<dynamic> route) => false,
-              ); // 사용자 정보 페이지로 이동
+                MaterialPageRoute(
+                  builder: (context) => InfoPage(userRole: 'dependent'),
+                ),
+              );
             },
           ),
         ],
       ),
       body: Container(
         color: Colors.white,
-        child: Center(
-          child: Text(
-            '총 점수: $score',
-            style: TextStyle(fontSize: 30, color: Colors.grey),
-          ),
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                '총 점수: $score / 16점',
+                style: TextStyle(fontSize: 30, color: Colors.grey),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              '카테고리별 점수:',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            SizedBox(height: 10),
+            ...categoryScores.entries.map((entry) {
+              return Text(
+                '${entry.key}: ${entry.value}점',
+                style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+              );
+            }).toList(),
+          ],
         ),
       ),
     );

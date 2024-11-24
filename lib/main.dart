@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'pages/home.dart'; // 실제 홈 페이지로 사용될 페이지
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'pages/guardianPages/guardianHome.dart';
 
 import 'login.dart';
 
@@ -42,7 +42,7 @@ class AuthChecker extends StatelessWidget {
 
     if (user != null) {
       // 로그인 상태라면 home.dart로 이동
-      return HomeApp();
+      return InitialPage();
     } else {
       // 로그아웃 상태라면 login.dart로 이동
       return LoginApp();
@@ -84,7 +84,7 @@ class InitialPage extends StatelessWidget { // 초기 화면 클래스
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildMainButton(context, 'test: 홈', Icons.arrow_right, MyHomePage()), // home.dart의 MyHomePage로 이동
+          _buildMainButton(context, 'test: 홈', Icons.arrow_right, Guardianhome()), // home.dart의 MyHomePage로 이동
           SizedBox(height: 20),
         ],
       ),

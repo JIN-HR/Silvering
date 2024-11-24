@@ -6,8 +6,9 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../home.dart';
 import 'package:cyber_project/tts.dart';
+
+import 'dependentHome.dart';
 
 class DiaryPage extends StatefulWidget {
   @override
@@ -166,7 +167,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => MyHomePage()),
+              MaterialPageRoute(builder: (context) => DependentDashboard()),
                   (Route<dynamic> route) => false,
             ); // home.dart로
           },
