@@ -86,14 +86,12 @@ class GuardianDashboard extends StatelessWidget {
         children: [
           _buildMainButton(
               context, '인지 검사 확인', Icons.arrow_right, TestCheckPage()),
-          SizedBox(height: 20), // Add space between buttons
+          SizedBox(height: 40), // Add space between buttons
           _buildMainButton(
               context, '일기 확인', Icons.arrow_right, DiaryCheckPage()),
-          SizedBox(height: 20),
+          SizedBox(height: 40),
           _buildMainButton(
               context, '피보호자 \n위치 확인', Icons.arrow_right, LocationPage()),
-          SizedBox(height: 20),
-          _buildMainButton(context, '게시판', Icons.arrow_right, TaxiPage()),
         ],
       ),
     );
