@@ -7,6 +7,7 @@ import 'package:cyber_project/stt.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'dependant_info.dart';
 import 'dependentHome.dart';
 
 class TestPage extends StatefulWidget {
@@ -284,7 +285,6 @@ class _TestPageState extends State<TestPage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -308,7 +308,7 @@ class _TestPageState extends State<TestPage> {
         onPressed: () {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => DependentDashboard()),
+            MaterialPageRoute(builder: (context) => Dependenthome()),
                 (Route<dynamic> route) => false,
           );
         },
@@ -318,11 +318,10 @@ class _TestPageState extends State<TestPage> {
           icon: Icon(Icons.person, color: Colors.white),
           iconSize: 40,
           onPressed: () {
-            Navigator.push(
+            Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => InfoPage(userRole: 'dependent'),
-              ),
+              MaterialPageRoute(builder: (context) => InfoPage( userRole: 'dependent')),
+                  (Route<dynamic> route) => false,
             );
           },
         ),
@@ -502,6 +501,8 @@ class _TestPageState extends State<TestPage> {
                 : null;
 
             if (questionNumber != null) {
+              print("sendResponseAndGetScore 호출 준비 중: $userResponse, $questionNumber");
+
               // ques_num이 있을 경우 API로 점수 요청
               int score =
               await sendResponseAndGetScore(userResponse, questionNumber);
@@ -557,33 +558,42 @@ class _TestPageState extends State<TestPage> {
   }
 
   // 서버로부터 점수를 요청하고 받아오는 함수
-  Future<int> sendResponseAndGetScore(
-      String userResponse, int questionNumber) async {
-    int questionNumber =
-    questions[currentIndex]['ques_num']; // 현재 질문의 ques_num을 전달
-    var url = Uri.parse('http://10.240.134.72:5000/evaluate');
+  Future<int> sendResponseAndGetScore(String userResponse, int questionNumber) async {
+    var url = Uri.parse('http://10.240.124.55:5000/evaluate');
+    print("서버 요청 URL: $url");
 
-    var httpResponse = await http.post(url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "text": userResponse,
-          "question_number": questionNumber // 질문 번호 추가
-        }));
+    try {
+      print("서버로 데이터 전송 중: $userResponse, $questionNumber");
+      var httpResponse = await http.post(url,
+          headers: {"Content-Type": "application/json"},
+          body: json.encode({
+            "text": userResponse,
+            "question_number": questionNumber,
+          }));
 
-    print("서버 응답: ${httpResponse.body}"); // 서버 응답 전체를 출력하여 확인
+      print("서버 응답 상태 코드: ${httpResponse.statusCode}");
+      print("서버 응답 본문: ${httpResponse.body}");
 
-    if (httpResponse.statusCode == 200) {
-      var jsonResponse = jsonDecode(httpResponse.body);
-      if (jsonResponse.containsKey('evaluation')) {
-        return jsonResponse['evaluation'] as int;
+      if (httpResponse.statusCode == 200) {
+        var jsonResponse = jsonDecode(httpResponse.body);
+        print("JSON 응답: $jsonResponse");
+        if (jsonResponse.containsKey('evaluation')) {
+          return jsonResponse['evaluation'] as int;
+        } else {
+          print("Error: 응답에 'evaluation' 키가 없습니다.");
+          return 0;
+        }
       } else {
-        print("Error: 응답에 'evaluation' 키가 없습니다.");
-        return 0; // 기본값 반환
+        print("서버 오류: ${httpResponse.body}");
+        return 0;
       }
-    } else {
-      throw Exception('Failed to load score');
+    } catch (e) {
+      print("서버와 통신 중 오류 발생: $e");
+      return 0;
     }
   }
+
+
 
   // 다음 질문으로 진행하는 함수
   void proceedToNextQuestion(int score) {
@@ -594,10 +604,8 @@ class _TestPageState extends State<TestPage> {
       // 카테고리가 존재하면 점수 계산
       if (currentQuestion.containsKey('category')) {
         String category = currentQuestion['category'];
-        // 해당 카테고리 점수 업데이트
         categoryScores[category] = (categoryScores[category] ?? 0) + score;
       } else {
-        // 카테고리가 없는 경우 점수를 추가하지 않음
         print("카테고리가 없는 질문입니다. 점수를 추가하지 않습니다.");
       }
 
@@ -613,23 +621,61 @@ class _TestPageState extends State<TestPage> {
           ttsService.speak(ttsPrompt);
         });
       } else {
-        // 검사 완료
-        ttsService.speak("검사가 완료되었습니다.").then((_) {
+        // 검사 완료: Firestore에 저장 후 결과 페이지로 이동
+        ttsService.speak("검사가 완료되었습니다.").then((_) async {
+          //await saveTestResultsToFirestore(totalScore, categoryScores); // Firestore 저장
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ResultPage(
                 score: totalScore,
-                categoryScores: categoryScores, // 추가
+                categoryScores: categoryScores,
               ),
             ),
           );
-
         });
       }
     });
   }
-
+  // Future<void> saveTestResultsToFirestore(
+  //     int score, Map<String, int> categoryScores) async {
+  //   final currentUser = FirebaseAuth.instance.currentUser;
+  //
+  //   if (currentUser == null) {
+  //     print('로그인된 사용자가 없습니다.');
+  //     return;
+  //   }
+  //
+  //   try {
+  //     final userDocRef = FirebaseFirestore.instance.collection('users').doc(currentUser.uid);
+  //
+  //     // 사용자 문서 확인
+  //     final userDocSnapshot = await userDocRef.get();
+  //
+  //     if (!userDocSnapshot.exists) {
+  //       print('사용자 문서를 찾을 수 없습니다.');
+  //       return;
+  //     }
+  //
+  //     final userData = userDocSnapshot.data();
+  //
+  //     if (userData != null && userData['role'] == 'dependent') {
+  //       await userDocRef.update({
+  //         'lastTestScore': score,
+  //         'categoryScores': categoryScores,
+  //         'lastTestDate': FieldValue.serverTimestamp(),
+  //       });
+  //
+  //       print('테스트 결과가 성공적으로 저장되었습니다.');
+  //     } else if (userData != null && userData['role'] == 'guardian') {
+  //       print('현재 사용자는 보호자입니다. 테스트 결과를 저장할 수 없습니다.');
+  //     } else {
+  //       print('알 수 없는 사용자 역할입니다: ${userData?['role']}');
+  //     }
+  //   } catch (e) {
+  //     print('테스트 결과 저장 중 오류 발생: $e');
+  //   }
+  // }
 
   // 퀴즈 화면에서 '듣기', '응답하기', '넘어가기' 버튼 처리를 구현
   Widget buildQuestionPage() {
@@ -710,7 +756,7 @@ class ResultPage extends StatelessWidget {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => DependentDashboard()),
+              MaterialPageRoute(builder: (context) => Dependenthome()),
                   (Route<dynamic> route) => false,
             );
           },
@@ -723,7 +769,7 @@ class ResultPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => InfoPage(userRole: 'dependent'),
+                  builder: (context) => DependentInfoPage(),
                 ),
               );
             },

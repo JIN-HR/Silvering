@@ -162,7 +162,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
     try {
       final uri =
-          Uri.parse("http://10.240.123.200:5000/generate_caption"); // 로컬 서버 URL
+          Uri.parse("http://10.240.124.55:5000/generate_caption"); // 로컬 서버 URL
       var request = http.MultipartRequest('POST', uri);
 
       // 이미지 파일을 multipart로 추가

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'test.dart'; // 인지 능력 검사 페이지
 import 'diary.dart'; // 일기 쓰기 페이지
 
-import '../userinfo.dart';
+import 'dependant_info.dart';
 import 'game.dart'; //게임 페이지
 //import 'chat.dart'; // 전문가 상담 페이지
 
@@ -40,7 +40,7 @@ class DependentDashboard extends StatelessWidget {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => InfoPage(userRole: 'dependent')),
+                    builder: (context) => DependentInfoPage()),
                     (Route<dynamic> route) => false,
               );              // 사용자 정보 페이지로 이동
             },
