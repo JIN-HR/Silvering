@@ -11,7 +11,8 @@ import 'pages/guardianPages/guardianHome.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform); // Firebase 초기화
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform); // Firebase 초기화
   runApp(LoginApp());
 }
 
@@ -181,7 +182,8 @@ class LoginPage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RoleSelectionPage(guardianId: null), // guardianId를 null로 전달
+                builder: (context) =>
+                    RoleSelectionPage(guardianId: null), // guardianId를 null로 전달
               ),
             );
           },
@@ -190,7 +192,6 @@ class LoginPage extends StatelessWidget {
             style: TextStyle(fontSize: 20, color: Color(0xFFFA8072)),
           ),
         ),
-
       ],
     );
   }

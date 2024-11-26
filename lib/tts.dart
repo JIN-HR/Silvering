@@ -23,8 +23,6 @@ class TtsService {
     await _tts.speak(text);
     print("TTS 요청됨: $text"); // TTS 호출 후 텍스트 출력
 
-
-
     var languages = await _tts.getLanguages;
   }
 
@@ -32,4 +30,3 @@ class TtsService {
     await _tts.stop();
   }
 }
-
