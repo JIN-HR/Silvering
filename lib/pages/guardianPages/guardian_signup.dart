@@ -134,20 +134,23 @@ class _GuardianSignupPageState extends State<GuardianSignupPage> {
         smsCode: smsCode,
       );
 
+      // Firebase Authentication에 인증된 사용자로 로그인
       final userCredential =
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Firestore에 보호자 정보 저장
-      await FirebaseFirestore.instance
-          .collection('users') // 보호자와 피보호자 공통 컬렉션
-          .doc(userCredential.user!.uid) // Firebase Authentication의 UID 사용
-          .set({
-        'phoneNumber': _phoneController.text.trim(),
-        'id': _idController.text.trim(),
-        'password': _passwordController.text.trim(),
-        'role': 'guardian', // 역할 명시
-      });
+      // Firebase Authentication의 UID를 가져오기
+      final guardianUid = userCredential.user!.uid;
 
+      // Firestore에 보호자 정보 저장
+      await FirebaseFirestore.instance.collection('users').doc(guardianUid).set({
+        'name': name,
+        'id': id,
+        'password': password,
+        'phoneNumber': _phoneController.text.trim(),
+        'role': 'guardian', // 역할 명시
+        'dependentIds': [], // 피보호자 초기 배열 생성
+        'createdAt': FieldValue.serverTimestamp(), // 생성 시간 추가
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("회원가입이 완료되었습니다!")),
@@ -158,7 +161,7 @@ class _GuardianSignupPageState extends State<GuardianSignupPage> {
         context,
         MaterialPageRoute(
           builder: (context) => DependentSignupPage(
-            guardianId: userCredential.user!.uid, // 보호자 ID 전달
+            guardianId: guardianUid, // 보호자 UID 전달
           ),
         ),
       );
@@ -168,6 +171,7 @@ class _GuardianSignupPageState extends State<GuardianSignupPage> {
       );
     }
   }
+
 
   // 자동 인증 성공 처리
   void _onVerificationSuccess() {

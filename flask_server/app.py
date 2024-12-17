@@ -18,6 +18,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/generate_caption": {"origins": "*"}})  # origin allow
 CORS(app, resources={r"/evaluate": {"origins": "*"}})  # origin allow
 
+
+
 # Firebase 초기화
 # .env 파일 로드
 load_dotenv()

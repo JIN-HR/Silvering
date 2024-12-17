@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cyber_project/sharedPreferences_helper.dart'; // 헬퍼 클래스 import
 
 class DependentInfoPage extends StatefulWidget {
   @override

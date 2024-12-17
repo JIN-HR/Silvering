@@ -1,355 +1,58 @@
-import openai
-import os
-import jsonify
-from dotenv import load_dotenv
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 import datetime
-import requests
 
-# OPENAI API KEY
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# 요청 헤더와 페이로드 설정
-headers = {
-    "Authorization": f"Bearer {openai.api_key}",
-    "Content-Type": "application/json"
-}
+# 학습된 MobileBERT 모델 로드
+MODEL_PATH = "mobilebert_fewshot"  # 학습된 모델 디렉토리
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+model.eval()
 
-
-### question 1
 # 현재 날짜와 시간
 now = datetime.datetime.now()
-
 year = now.year
 month = now.month
 day = now.day
 weekdays = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
 weekday = weekdays[now.weekday()]
 
-
-### prompt
-user_text = ''
-prompt1 = f"""
-    오늘 날짜와 사용자의 응답을 비교하여 점수를 부여합니다.
-    점수는 맞으면 1 또는 틀리면 0이다. 
-    현재 날짜:
-    - 연도: {year}
-    - 월: {month}월
-    - 일: {day}일
-    - 요일: {weekday}
-    사용자가 연도, 월, 일, 또는 요일 중 하나를 대답했을 때,
-    해당 답변이 오늘의 날짜와 일치하면 숫자 1을, 틀리면 숫자 0을 반환합니다.
-    
-    
-    - 사용자 응답: "{user_text}"
-    - 평가 결과: 1 (맞음) 또는 0 (틀림)
-     평과 결과는 무조건 정답일 경우 1, 아닐 경우 0을 반환하라.   
-"""
-
-prompt3=f"""
-사용자가 주의력 평가를 받고 있습니다. 이 평가는 사용자가 들은 숫자열을 정확히 따라 말하는지 확인하는 것입니다. 숫자열을 단 한 번만 들려주고, 사용자는 이를 정확하게 기억하여 같은 순서로 따라 말해야 합니다.	
-	
-1. 숫자열:	
-- 첫 번째 숫자열: 6-9-7-3 (육구칠삼)	
-- 두 번째 숫자열: 5-7-2-8-4 (오칠이팔사)	
-	
-2. 평가 기준:	
-- 사용자가 숫자를 정확한 순서로 따라 말했는지 확인합니다.	
-- 숫자 중 하나라도 틀리면 오답으로 간주합니다.	
-- 숫자열을 전체적으로 정확히 반복할 경우 각각 1점을 부여하여 총 2점 만점으로 평가합니다.	
-- 숫자를 천천히 말하거나 반복하여도 정답이라면 점수를 부여합니다.	
-	
-사용자의 답변을 평가 기준에 따라 분석하고, 각각의 숫자열에 대한 점수를 합산하여 최종 점수를 제시해 주세요.	
-	
-예시 평가 형식:	
-사용자 답변: "6-9-7-3, 5-7-2-8-4"	
-평가 결과:	
-- 첫 번째 숫자열 - 정답 (1점)	
-- 두 번째 숫자열 - 정답 (1점)	
-	
-최종 점수: 2/2	
-
-
-- 사용자 응답: "{user_text}"
-- 평가 결과: 1 (맞음) 또는 0 (틀림)
-평가 결과는 무조건 정답일 경우 1, 아닐 경우 0을 반환하라.   
-"""
-
-prompt4=f"""
-사용자가 주의력 평가를 받고 있습니다. 이 평가는 사용자가 들은 단어를 거꾸로 정확하게 따라 말하는지 확인하는 것입니다. 사용자는 제시된 단어를 끝에서부터 역순으로 발음해야 하며, 단어는 한 번만 들려줍니다.	
-	
-1. 제시된 단어:	
-- "금수강산"	
-	
-2. 평가 기준:	
-- 사용자가 "금수강산"을 정확히 듣고 역순으로 "산강수금"이라고 말하면 정답으로 인정합니다.	
-- 발음을 할 때 음절 하나라도 틀리면 오답으로 간주합니다.	
-- 발음을 천천히 하거나 조심스럽게 말해도 정확하다면 정답으로 인정합니다.	
-- 사용자가 요청할 경우, 한 번 더 들려줄 수 있습니다. 다만, 이 경우도 단어는 동일하게 유지됩니다.	
-	
-사용자의 답변을 평가 기준에 따라 분석하고, 정확하게 역순으로 말했는지 확인한 후 점수를 부여해 주세요.	
-	
-예시 평가 형식:	
-사용자 답변: "산강수금"	
-평가 결과: 정답 (1점)	
-	
-사용자 답변: "산강금수"	
-평가 결과: 오답 (0점)	
-
-- 사용자 응답: "{user_text}"
-- 평가 결과: 1 (맞음) 또는 0 (틀림)
-평가 결과는 무조건 정답일 경우 1, 아닐 경우 0을 반환하라.   
-"""
-
-prompt8=f"""
-사용자가 기억력 평가의 재인(Recognition) 항목을 받고 있습니다. 이 평가에서는 사용자가 이전에 들은 정보를 얼마나 정확히 기억하는지를 확인합니다.	
-	
-1. 제시된 기억 정보:	
-- 사용자는 앞선 평가에서 다음 문장을 들었습니다: "민수는 자전거를 타고 공원에 가서 11시부터 야구를 했다."	
-	
-2. 재인 질문:	
-- (사람 이름) "제가 아까 어떤 사람의 이름을 말했는데, 누구일까요? 영수, 민수, 진수?"	
-- (교통수단) "무엇을 타고 갔습니까? 버스, 오토바이, 자전거?"	
-- (장소) "어디에 갔습니까? 공원, 놀이터, 운동장?"	
-- (시간) "몇 시부터 했습니까? 10시, 11시, 12시?"	
-- (한 것) "무엇을 했습니까? 농구, 축구, 야구?"	
-	
-3. 평가 기준:	
-- 사용자가 "민수", "자전거", "공원", "11시", "야구"와 같이 정확한 항목을 선택한 경우 정답으로 간주합니다.	
-- 각 정답 항목당 1점을 부여하며, 총 5점 만점으로 평가합니다.	
-- 사용자가 정답을 맞히지 못한 경우에는 해당 항목에 0점을 부여합니다.	
-	
-사용자의 답변을 평가 기준에 따라 분석하고, 각 질문에 대한 정답 여부와 점수를 제시해 주세요.	
-	
-예시 평가 형식:	
-사용자 답변:	
-1. (사람 이름) 민수 - 정답 (1점)	
-2. (교통수단) 자전거 - 정답 (1점)	
-3. (장소) 공원 - 정답 (1점)	
-4. (시간) 11시 - 정답 (1점)	
-5. (한 것) 야구 - 정답 (1점)	
-	
-최종 점수: 5/5	
-
-
-- 사용자 응답: "{user_text}"
-- 평가 결과: 1 (맞음) 또는 0 (틀림)
-평가 결과는 무조건 정답일 경우 1, 아닐 경우 0을 반환하라.   
-"""
-
-
-
-# 프롬프트를 문제 번호에 따라 매핑
-prompts = {
-    1: prompt1,
-    3: prompt3,
-    4: prompt4,
-    8: prompt8
+# 문제별 정답 데이터
+correct_answers = {
+    1: [str(year), f"{year}년", f"{month}월", f"{day}일", weekday],  # 문제 1: 날짜와 요일
+    3: ["6-9-7-3", "5-7-2-8-4"],  # 문제 3: 숫자열
+    4: ["산강수금"],  # 문제 4: 거꾸로 말하기
+    8: ["민수", "자전거", "공원", "11시", "야구"]  # 문제 8: 문장 기억
 }
 
-# eval_response 함수 - 문제 번호에 따라 프롬프트 선택
+# 기존 eval_response 함수 수정
 def eval_response(user_text, question_number):
-    # 문제 번호에 따라 적절한 프롬프트 선택
-    prompt = prompts.get(question_number, "")
-    if not prompt:
-        print(f"Error: 문제 번호 {question_number}에 대한 프롬프트가 없습니다.")
+    """
+    MobileBERT 모델을 사용하여 사용자 응답을 평가합니다.
+    Args:
+        user_text (str): 사용자 응답 텍스트
+        question_number (int): 문제 번호
+    Returns:
+        int: 평가 결과 (0: 틀림, 1: 맞음)
+    """
+    if question_number not in correct_answers:
+        print(f"Error: 문제 번호 {question_number}에 대한 정답 데이터가 없습니다.")
         return 0
 
-    # OpenAI Chat Completion API 요청 페이로드 설정
-    payload = {
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {"role": "system", "content": "프롬프트 명령에 따라 답변을 1 또는 0으로만 하라"},
-            {"role": "user", "content": f"{prompt}\n사용자 응답: \"{user_text}\""}
-        ],
-        "max_tokens": 5,
-        "temperature": 0
-    }
+    answers = correct_answers[question_number]
 
-    try:
-        # POST 요청 보내기
-        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        response.raise_for_status()
+    for answer in answers:
+        # MobileBERT 입력 생성
+        inputs = tokenizer(answer, user_text, return_tensors="pt", truncation=True, padding=True, max_length=128)
 
-        # JSON 응답 추출
-        response_json = response.json()
-        if "choices" in response_json and response_json['choices']:
-            content = response_json['choices'][0]['message']['content'].strip()
-            print("API 응답:", content)
-            return int(content) if content.isdigit() else 0
-        else:
-            print("Error in response:", response_json)
-            return 0
-    except requests.exceptions.RequestException as e:
-        print("API 요청 중 오류 발생:", e)
-        return 0
+        # MobileBERT 예측
+        with torch.no_grad():
+            outputs = model(**inputs)
+            logits = outputs.logits
+            predicted_class = torch.argmax(logits).item()
 
-#
-# ###Q4
-# def eval_response_4(user_text):
-#
-#     prompt = f"""
-#     4번
-#     사용자가 주의력 평가를 받고 있습니다. 이 평가는 사용자가 들은 숫자열을 정확히 따라 말하는지 확인하는 것입니다. 숫자열을 단 한 번만 들려주고, 사용자는 이를 정확하게 기억하여 같은 순서로 따라 말해야 합니다.
-#
-#     1. 숫자열:
-#     - 첫 번째 숫자열: 6-9-7-3 (육구칠삼)
-#     - 두 번째 숫자열: 5-7-2-8-4 (오칠이팔사)
-#
-#     2. 평가 기준:
-#     - 사용자가 숫자를 정확한 순서로 따라 말했는지 확인합니다.
-#     - 숫자 중 하나라도 틀리면 오답으로 간주합니다.
-#     - 숫자열을 전체적으로 정확히 반복할 경우 각각 1점을 부여하여 총 2점 만점으로 평가합니다.
-#     - 숫자를 천천히 말하거나 반복하여도 정답이라면 점수를 부여합니다.
-#
-#     사용자의 답변을 평가 기준에 따라 분석하고, 각각의 숫자열에 대한 점수를 합산하여 최종 점수를 제시해 주세요.
-#
-#     예시 평가 형식:
-#     사용자 답변: "6-9-7-3, 5-7-2-8-4"
-#     평가 결과:
-#     - 첫 번째 숫자열 - 정답 (1점)
-#     - 두 번째 숫자열 - 정답 (1점)
-#
-#     최종 점수: 2/2			"""
-#
-#     try:
-#         # POST 요청 보내기
-#         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-#         response.raise_for_status()  # HTTP 오류 발생 시 예외 발생
-#
-#         # JSON 응답 추출
-#         response_json = response.json()
-#         if "choices" in response_json and response_json['choices']:
-#             content = response_json['choices'][0]['message']['content'].strip()
-#             print("API 응답:", content)
-#
-#             # 응답이 숫자면 반환, 아니면 0 반환
-#             return int(content) if content.isdigit() else 0
-#         else:
-#             print("Error in response:", response_json)
-#             return 0
-#     except requests.exceptions.RequestException as e:
-#         print("API 요청 중 오류 발생:", e)
-#         return 0
-#
-# ###Q5
-# def eval_response_5(user_text):
-#
-#     prompt = f"""
-#     5번
-#     사용자가 주의력 평가를 받고 있습니다. 이 평가는 사용자가 들은 단어를 거꾸로 정확하게 따라 말하는지 확인하는 것입니다. 사용자는 제시된 단어를 끝에서부터 역순으로 발음해야 하며, 단어는 한 번만 들려줍니다.
-#
-#     1. 제시된 단어:
-#     - "금수강산"
-#
-#     2. 평가 기준:
-#     - 사용자가 "금수강산"을 정확히 듣고 역순으로 "산강수금"이라고 말하면 정답으로 인정합니다.
-#     - 발음을 할 때 음절 하나라도 틀리면 오답으로 간주합니다.
-#     - 발음을 천천히 하거나 조심스럽게 말해도 정확하다면 정답으로 인정합니다.
-#     - 사용자가 요청할 경우, 한 번 더 들려줄 수 있습니다. 다만, 이 경우도 단어는 동일하게 유지됩니다.
-#
-#     사용자의 답변을 평가 기준에 따라 분석하고, 정확하게 역순으로 말했는지 확인한 후 점수를 부여해 주세요.
-#
-#     예시 평가 형식:
-#     사용자 답변: "산강수금"
-#     평가 결과: 정답 (1점)
-#
-#     사용자 답변: "산강금수"
-#     평가 결과: 오답 (0점)
-#             	"""
-#
-#     # GPT API를 사용해 평가 요청
-#     response = openai.Completion.create(
-#         engine="text-davinci-003",  # 원하는 모델 엔진
-#         prompt=prompt,
-#         max_tokens=50,
-#         temperature=0.7
-#     )
-#
-#     # GPT API 응답 추출
-#     evaluation = response.choices[0].text.strip()
-#     return evaluation
-#
-# ###Q10
-# def eval_response_10(user_text):
-#
-#     prompt = f"""
-#      10번
-#     사용자가 기억력 평가의 재인(Recognition) 항목을 받고 있습니다. 이 평가에서는 사용자가 이전에 들은 정보를 얼마나 정확히 기억하는지를 확인합니다.
-#
-#     1. 제시된 기억 정보:
-#     - 사용자는 앞선 평가에서 다음 문장을 들었습니다: "민수는 자전거를 타고 공원에 가서 11시부터 야구를 했다."
-#
-#     2. 재인 질문:
-#     - (사람 이름) "제가 아까 어떤 사람의 이름을 말했는데, 누구일까요? 영수, 민수, 진수?"
-#     - (교통수단) "무엇을 타고 갔습니까? 버스, 오토바이, 자전거?"
-#     - (장소) "어디에 갔습니까? 공원, 놀이터, 운동장?"
-#     - (시간) "몇 시부터 했습니까? 10시, 11시, 12시?"
-#     - (한 것) "무엇을 했습니까? 농구, 축구, 야구?"
-#
-#     3. 평가 기준:
-#     - 사용자가 "민수", "자전거", "공원", "11시", "야구"와 같이 정확한 항목을 선택한 경우 정답으로 간주합니다.
-#     - 각 정답 항목당 1점을 부여하며, 총 5점 만점으로 평가합니다.
-#     - 사용자가 정답을 맞히지 못한 경우에는 해당 항목에 0점을 부여합니다.
-#
-#     사용자의 답변을 평가 기준에 따라 분석하고, 각 질문에 대한 정답 여부와 점수를 제시해 주세요.
-#
-#     예시 평가 형식:
-#     사용자 답변:
-#     1. (사람 이름) 민수 - 정답 (1점)
-#     2. (교통수단) 자전거 - 정답 (1점)
-#     3. (장소) 공원 - 정답 (1점)
-#     4. (시간) 11시 - 정답 (1점)
-#     5. (한 것) 야구 - 정답 (1점)
-#
-#     최종 점수: 5/5
-#
-#             	"""
-#
-#     # GPT API를 사용해 평가 요청
-#     response = openai.Completion.create(
-#         engine="text-davinci-003",  # 원하는 모델 엔진
-#         prompt=prompt,
-#         max_tokens=50,
-#         temperature=0.7
-#     )
-#
-#     # GPT API 응답 추출
-#     evaluation = response.choices[0].text.strip()
-#     return evaluation
-#
-# ###Q13
-# def eval_response_13(user_text):
-#     prompt = f"""
-#     13번
-#     사용자가 제한된 시간 내에 과일 또는 채소 이름을 최대한 많이 말하는 평가를 받고 있습니다. 사용자가 언급한 단어 목록을 확인하고 다음 기준에 따라 평가해 주세요.
-#
-#     1. 각 단어는 중복 없이 고유해야 하며, 과일 또는 채소 이름이어야 합니다.
-#     2. 상위 개념과 하위 개념으로 구분된 단어가 함께 언급되었을 경우 상위 개념만 인정합니다.
-#     - 예: "포도"와 "청포도"가 함께 언급된 경우, "포도"만 정답으로 인정합니다.
-#     3. 특정 단어는 과일/채소로 인정되지 않으며, 다음 목록은 제외합니다:
-#     - 무말랭이, 곡물(쌀, 수수, 조 등), 해조류(미역, 다시마 등)
-#     4. 단어 개수에 따라 점수를 부여합니다:
-#     - 2점: 15개 이상
-#     - 1점: 9-14개
-#     - 0점: 0-8개
-#
-#     예시:
-#     사용자 답변: "사과, 포도, 청포도, 토마토, 방울토마토, 감, 연시"
-#     평가 결과:
-#     - 고유 단어 수: 5개 (청포도와 방울토마토는 각각 포도와 토마토의 하위 개념으로 중복 처리됨)
-#     - 최종 점수: 1점 (9-14개 범위)
-#
-#     최종 점수를 제공해 주세요.
-#     """
-#
-#     # GPT API를 사용해 평가 요청
-#     response = openai.Completion.create(
-#         engine="text-davinci-003",  # 원하는 모델 엔진
-#         prompt=prompt,
-#         max_tokens=50,
-#         temperature=0.7
-#     )
-#
-#     # GPT API 응답 추출
-#     evaluation = response.choices[0].text.strip()
-#     return evaluation
+        # 정답일 경우 1 반환
+        if predicted_class == 1:
+            return 1
+
+    # 모든 정답과 비교해도 맞는 것이 없으면 0 반환
+    return 0

@@ -25,12 +25,18 @@ class RoleSelectionPage extends StatelessWidget {
               SizedBox(height: 30.0),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GuardianSignupPage(), // 보호자 회원가입 페이지
-                    ),
-                  );
+                  if (guardianId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("먼저 보호자를 등록해주세요.")),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DependentSignupPage(guardianId: guardianId!),
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFFA8072),

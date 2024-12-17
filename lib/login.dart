@@ -1,6 +1,6 @@
 import 'package:cyber_project/roleSelect.dart';
+import 'package:cyber_project/sharedPreferences_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:cyber_project/firebase_options.dart';
@@ -131,7 +131,10 @@ class LoginPage extends StatelessWidget {
                 return;
               }
 
-              // 역할에 따라 대시보드로 이동
+              // SharedPreferences에 id 저장
+              await SharedPrefsHelper.saveUserId(id);
+
+              // 역할에 따라 화면 이동
               if (role == 'guardian') {
                 Navigator.pushReplacement(
                   context,
@@ -165,6 +168,7 @@ class LoginPage extends StatelessWidget {
             ),
           ),
         ),
+
       ],
     );
   }

@@ -54,7 +54,7 @@ dependencies:
   google_maps_flutter_web: ^0.5.10
   google_maps_flutter: ^2.9.0
   geocode: ^1.0.3
-
+  shared_preferences: ^2.1.1
 
 
 

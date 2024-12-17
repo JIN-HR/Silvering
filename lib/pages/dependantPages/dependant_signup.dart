@@ -139,28 +139,46 @@ class _DependentSignupPageState extends State<DependentSignupPage> {
       final userCredential =
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Firestore에 피보호자 정보 저장
-      await FirebaseFirestore.instance.collection('users').add({
-        'name': _nameController.text.trim(),
-        'id': _idController.text.trim(),
-        'password': _passwordController.text.trim(),
-        'phoneNumber': _phoneController.text.trim(),
-        'role': 'dependent',
-        'guardianId': widget.guardianId, // 연계된 보호자 UID 저장
-      });
+      // Firestore에 피보호자 정보 저장 및 관계 설정
+      try {
+        String dependentUid = FirebaseAuth.instance.currentUser!.uid;
 
+        await FirebaseFirestore.instance.collection('users').doc(dependentUid).set({
+          'name': name,
+          'id': id,
+          'password': password,
+          'phoneNumber': _phoneController.text.trim(),
+          'role': 'dependent',
+          'guardianId': widget.guardianId,
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("회원가입이 완료되었습니다!")),
-      );
+        // 피보호자의 guardianId 업데이트
+        await FirebaseFirestore.instance.collection('users').doc(dependentUid).update({
+          'guardianId': widget.guardianId,
+        });
 
-      Navigator.popUntil(context, (route) => route.isFirst); // 로그인 화면으로 돌아감
+        // 보호자의 dependentIds 배열에 피보호자 UID 추가
+        await FirebaseFirestore.instance.collection('users').doc(widget.guardianId).update({
+          'dependentIds': FieldValue.arrayUnion([dependentUid]),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("회원가입이 완료되었습니다!")),
+        );
+
+        Navigator.popUntil(context, (route) => route.isFirst); // 로그인 화면으로 돌아감
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("회원가입 실패: $e")),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("회원가입 실패: $e")),
       );
     }
   }
+
 
   // 자동 인증 성공 처리
   void _onVerificationSuccess() {

@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cyber_project/pages/dependantPages/dependentHome.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'pages/guardianPages/guardianHome.dart';
-
 import 'login.dart';
 
 //firebase login
@@ -37,18 +38,41 @@ class MyApp extends StatelessWidget {
 class AuthChecker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // 현재 로그인된 사용자 가져오기
-    User? user = FirebaseAuth.instance.currentUser;
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData) {
+          final userId = snapshot.data!.uid;
 
-    if (user != null) {
-      // 로그인 상태라면 home.dart로 이동
-      return InitialPage();
-    } else {
-      // 로그아웃 상태라면 login.dart로 이동
-      return LoginApp();
-    }
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasData) {
+                final role = snapshot.data!.get('role');
+                if (role == 'guardian') {
+                  return Guardianhome();
+                } else if (role == 'dependent') {
+                  return Dependenthome();
+                } else {
+                  return LoginPage();
+                }
+              } else {
+                return LoginPage();
+              }
+            },
+          );
+        } else {
+          return LoginPage();
+        }
+      },
+    );
   }
 }
+
 
 class InitialPage extends StatelessWidget { // 초기 화면 클래스
   @override
@@ -145,6 +169,47 @@ class InitialPage extends StatelessWidget { // 초기 화면 클래스
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class LoginApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '달리는 대방어',
+      theme: ThemeData(fontFamily: 'GmarketSansTTF'),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator(); // 로딩 화면
+          } else if (snapshot.hasData) {
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(snapshot.data!.uid)
+                  .get(),
+              builder: (context, roleSnapshot) {
+                if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+                if (roleSnapshot.hasData) {
+                  final role = roleSnapshot.data!.get('role');
+                  if (role == 'guardian') {
+                    return Guardianhome();
+                  } else if (role == 'dependent') {
+                    return Dependenthome();
+                  }
+                }
+                return LoginPage();
+              },
+            );
+          } else {
+            return LoginPage(); // 로그인되지 않은 경우
+          }
+        },
       ),
     );
   }

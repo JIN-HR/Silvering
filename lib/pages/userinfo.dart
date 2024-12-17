@@ -1,5 +1,3 @@
-// userinfo.dart : 게시판
-
 import 'package:flutter/material.dart';
 import 'dependantPages/dependentHome.dart';
 import 'guardianPages/guardianHome.dart';
@@ -20,16 +18,14 @@ class InfoPage extends StatelessWidget {
           onPressed: () {
             // 역할에 따라 홈 페이지로 이동
             if (userRole == 'guardian') {
-              Navigator.pushAndRemoveUntil(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => GuardianDashboard()),
-                    (Route<dynamic> route) => false,
               );
             } else if (userRole == 'dependent') {
-              Navigator.pushAndRemoveUntil(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => DependentDashboard()),
-                    (Route<dynamic> route) => false,
               );
             }
           },
@@ -39,18 +35,21 @@ class InfoPage extends StatelessWidget {
             icon: Icon(Icons.person, color: Colors.white),
             iconSize: 40, // 아이콘 크기 설정
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
+              // InfoPage로 다시 이동 (동일 역할 유지)
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => InfoPage(userRole: userRole)),
-                    (Route<dynamic> route) => false,
-              ); // 사용자 정보 페이지로 이동
+              );
             },
           ),
         ],
       ),
       body: Center(
-        child: Text('유저 정보 페이지'),
+        child: Text(
+          '유저 정보 페이지',
+          style: TextStyle(fontSize: 20),
+        ),
       ),
     );
   }
@@ -65,7 +64,7 @@ class InfoPage extends StatelessWidget {
             style: TextStyle(fontSize: 12, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height:20),
+          SizedBox(height: 20),
         ],
       ),
     );

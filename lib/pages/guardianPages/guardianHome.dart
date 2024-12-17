@@ -1,6 +1,7 @@
 // home.dart : 메인 홈
 
 import 'package:flutter/material.dart';
+import '../userinfo.dart';
 import 'testCheck.dart'; // 인지 능력 검사 결과 확인 페이지
 import 'diaryCheck.dart'; // 일기 확인 페이지
 import 'location.dart'; // 위치 공유 페이지
@@ -35,7 +36,7 @@ class GuardianDashboard extends StatelessWidget {
             icon: Icon(Icons.person, color: Colors.white),
             iconSize: 40, // 아이콘 크기 설정
             onPressed: () {
-              // 사용자 정보 페이지로 이동
+              InfoPage(userRole: 'guardian',);
             },
           ),
         ],

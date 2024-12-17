@@ -1,6 +1,5 @@
 // test.dart : 인지 능력 검사
 import 'package:flutter/material.dart';
-import '../userinfo.dart';
 import 'package:cyber_project/tts.dart';
 import 'package:cyber_project/stt.dart';
 //test_eval.py에 전송
@@ -55,7 +54,7 @@ class _TestPageState extends State<TestPage> {
       'ques_num': 1,
       'category':'지남력',
       'question': '1.  오늘 날짜에 대한 질문입니다. \n 응답하기 버튼을 눌러주세요. \n (2) 오늘은 몇 월인가요?',
-      'ttsText': '이어지는 오늘 날짜에 대한 질문입니다. 오늘은 몇 월인지 응답하기 버튼을 누르고 연도를 말씀해주세요.',
+      'ttsText': '이어지는 오늘 날짜에 대한 질문입니다. 오늘은 몇 월인지 응답하기 버튼을 누르고 달을 말씀해주세요.',
       'options': [
         {'text': '응답하기'},
         {'text': '넘어가기'},
@@ -84,7 +83,7 @@ class _TestPageState extends State<TestPage> {
     {
       'ques_num': 2,
       'question':
-      '2. 문장 외우기  \n 지금부터 외우셔야 하는 문장 하나를 불러드리겠습니다. \n 끝까지 잘 듣고 따라 해 보세요.',
+      '2. 문장 외우기  \n 지금부터 외우셔야 하는 문장 하나를\n불러 드리겠습니다. \n 끝까지 잘 듣고 따라 해 보세요.',
       'ttsText':
       '2번 문제입니다. 지금부터 외우셔야 하는 문장 하나를 불러드리겠습니다. 한 번만 들려드리니, 끝까지 잘 듣고 따라해주세요.',
       'options': [
@@ -96,8 +95,8 @@ class _TestPageState extends State<TestPage> {
     {
       'ques_num': 2,
       'question':
-      '잘 하셨습니다. 다시 한 번 불러드리겠습니다. \n 이번에도 다시 여쭈어 볼 테니 잘 듣고 따라 해 보세요.',
-      'ttsText': '잘 하셨습니다. 다시 한 번 불러드리겠습니다.  이번에도 다시 여쭈어 볼 테니 잘 듣고 따라 해 보세요.',
+      '잘 하셨습니다. \n다시 한 번 불러드리겠습니다. \n 이번에도 다시 여쭈어 볼 테니 \n잘 듣고 따라 해 보세요.',
+      'ttsText': '잘 하셨습니다. 다시 한 번 불러드리겠습니다. 이번에도 다시 여쭈어 볼 테니 잘 듣고 따라 해 보세요.',
       'options': [
         {'text': '듣기'},
         {'text': '응답하기'},
@@ -115,7 +114,7 @@ class _TestPageState extends State<TestPage> {
       'ques_num': 3,
       'category':'주의력',
       'question':
-      '3-1. 부르는 숫자 바로 따라 말하기 \n 제가 불러드리는 숫자를 그대로 따라 해 주세요. \n 한 번만 불러드릴 수 있으니 잘 들어 주세요. ',
+      '3-1. 부르는 숫자 바로 따라 말하기\n제가 불러드리는 숫자를\n그대로 따라 해 주세요.\n한 번만 불러드릴 수 있으니\n잘 들어 주세요. ',
       'ttsText':
       '다음으로 3번 문제입니다.  제가 불러드리는 숫자를 그대로 따라 해 주세요. 한 번만 불러드릴 수 있으니 잘 들어 주세요. 6   9   7  3',
       'options': [
@@ -128,7 +127,7 @@ class _TestPageState extends State<TestPage> {
       'ques_num': 3,
       'category':'주의력',
       'question':
-      '3-2. 부르는 숫자 바로 따라 말하기 \n 제가 불러드리는 숫자를 그대로 따라 해 주세요. \n 한 번만 불러드릴 수 있으니 잘 들어 주세요. ',
+      '3-2. 부르는 숫자 바로 따라 말하기\n제가 불러드리는 숫자를\n그대로 따라 해 주세요.\n한 번만 불러드릴 수 있으니\n잘 들어 주세요. ',
       'ttsText':
       '다른 숫자를 불러드리겠습니다. 제가 불러드리는 숫자를 그대로 따라 해 주세요. 한 번만 불러드릴 수 있으니 잘 들어 주세요. 5  7  2  8  4',
       'options': [
@@ -140,7 +139,7 @@ class _TestPageState extends State<TestPage> {
     {
       'ques_num': 4,
       'category':'주의력',
-      'question': '4. 거꾸로 말하기 \n 제가 불러드리는 말을 끝에서부터 거꾸로 따라 해 주세요.',
+      'question': '4. 거꾸로 말하기 \n제가 불러드리는 말을\n끝에서부터 거꾸로 따라 해 주세요.',
       'ttsText': '다음 문제입니다. 제가 불러드리는 말을 끝에서부터 거꾸로 따라 해 주세요. 금,  수,  강,  산',
       'options': [
         {'text': '듣기'},
@@ -150,7 +149,7 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'category':'시공간 기능',
-      'question': '5. 세 가지 모양이 정해진 순서로 나오고 있습니다. 빈칸 안에 들어갈 도형은 무엇인가요?',
+      'question': '5.\n세 도형이 일정 순서로 나오고 있습니다.\n빈칸에 들어갈 도형은 무엇인가요?',
       'image': 'lib/pictures/Q7.png',
       'options': [
         {'text': '1 (네모)', 'score': 0},
@@ -160,7 +159,7 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'category':'시공간 기능',
-      'question': '6. 네 칸 중 한 칸에 별이 하나 있고, 별은 그림 순서대로 다른 위치로 이동합니다. 마지막 그림 속 별이 들어갈 위치는 어디인가요?',
+      'question': '6.\n네 칸 중 한 칸에 별이 하나 있고,\n별은 그림 순서대로 이동합니다.\n마지막 그림의 별은 어디있을까요?',
       'image': 'lib/pictures/Q8.png',
       'options': [
         {'text': '1', 'score': 0},
@@ -171,7 +170,7 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'category':'시공간 기능',
-      'question': '7. 카드에 숫자와 계절이 하나씩 적혀 있습니다. 빨간색 카드에 들어갈 말을 선택해주세요.',
+      'question': '7.\n카드에 숫자 또는 계절이 적혀 있습니다.\n빨간 카드에 들어갈 말을 선택해주세요.',
       'image': 'lib/pictures/Q9.png',
       'options': [
         {'text': '4', 'score': 1},
@@ -182,7 +181,7 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'category':'시공간 기능',
-      'question': '7. 카드에 숫자와 계절이 하나씩 적혀 있습니다. 파란색 카드에 들어갈 말을 선택해주세요.',
+      'question': '7.\n카드에 숫자 또는 계절이 적혀 있습니다.\n파란 카드에 들어갈 말을 선택해주세요.',
       'image': 'lib/pictures/Q10.png',
       'options': [
         {'text': '4', 'score': 0},
@@ -193,7 +192,7 @@ class _TestPageState extends State<TestPage> {
     },
     {
       'category':'기억력',
-      'question': '8-1. 기억력 \n 앞서 제가 어떤 사람의 이름을 말했는데 누구일까요? ',
+      'question': '8-1. 기억력 \n 앞서 제가 어떤 사람의 이름을 말했는데,\n그이름은 무엇이었나요? ',
       'ttsText':
       '다음 문제입니다. 제가 앞서 외우라고 말씀드린 문장이 기억 나시나요? 그 문제에 대한 질문입니다. 앞서 제가 어떤 사람의 이름을 말했는데 누구일까요?',
       'options': [
@@ -320,7 +319,8 @@ class _TestPageState extends State<TestPage> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => InfoPage( userRole: 'dependent')),
+              MaterialPageRoute(
+                  builder: (context) => DependentInfoPage()),
                   (Route<dynamic> route) => false,
             );
           },
@@ -338,8 +338,8 @@ class _TestPageState extends State<TestPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '치매 검사를 시작합니다.\n안내를 읽고 검사 시작하기를 눌러주세요.\n\n'
-                '해당 검사는 참고용입니다.\n정확한 진단을 위해서는 병원을 방문하세요.\n',
+            '치매 검사를 시작합니다.\n안내를 잘 읽고\n검사 시작하기를 눌러주세요.\n\n'
+                '해당 검사는 참고용입니다.\n정확한 진단을 위해서는 \n병원을 방문하세요.\n',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 20, color: Colors.grey),
           ),
@@ -559,7 +559,7 @@ class _TestPageState extends State<TestPage> {
 
   // 서버로부터 점수를 요청하고 받아오는 함수
   Future<int> sendResponseAndGetScore(String userResponse, int questionNumber) async {
-    var url = Uri.parse('http://10.240.124.55:5000/evaluate');
+    var url = Uri.parse('http://10.0.0.2:5000/evaluate');
     print("서버 요청 URL: $url");
 
     try {
@@ -637,6 +637,52 @@ class _TestPageState extends State<TestPage> {
       }
     });
   }
+
+
+
+
+  // // 다음 질문으로 진행하는 함수
+  // void proceedToNextQuestion(int score) {
+  //   setState(() {
+  //     // 현재 질문 가져오기
+  //     var currentQuestion = questions[currentIndex];
+  //
+  //     // 카테고리가 존재하면 점수 계산
+  //     if (currentQuestion.containsKey('category')) {
+  //       String category = currentQuestion['category'];
+  //       categoryScores[category] = (categoryScores[category] ?? 0) + score;
+  //     } else {
+  //       print("카테고리가 없는 질문입니다. 점수를 추가하지 않습니다.");
+  //     }
+  //
+  //     // 총점 업데이트
+  //     totalScore += score;
+  //
+  //     // 다음 질문으로 이동
+  //     if (currentIndex < questions.length - 1) {
+  //       currentIndex++;
+  //       ttsService.speak("확인되었습니다. 다음 질문으로 넘어가겠습니다.").then((_) {
+  //         String ttsPrompt =
+  //             questions[currentIndex - 1]['ttsText'] ?? "다음 질문을 확인하세요.";
+  //         ttsService.speak(ttsPrompt);
+  //       });
+  //     } else {
+  //       // 검사 완료: Firestore에 저장 후 결과 페이지로 이동
+  //       ttsService.speak("검사가 완료되었습니다.").then((_) async {
+  //         //await saveTestResultsToFirestore(totalScore, categoryScores); // Firestore 저장
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => ResultPage(
+  //               score: totalScore,
+  //               categoryScores: categoryScores,
+  //             ),
+  //           ),
+  //         );
+  //       });
+  //     }
+  //   });
+  // }
   // Future<void> saveTestResultsToFirestore(
   //     int score, Map<String, int> categoryScores) async {
   //   final currentUser = FirebaseAuth.instance.currentUser;
@@ -696,7 +742,7 @@ class _TestPageState extends State<TestPage> {
             Image.asset(
               question['image'],
               width: 380,
-              height: 180,
+              height: 120,
               fit: BoxFit.contain,
             ),
           ],
@@ -782,22 +828,23 @@ class ResultPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 20),
             Center(
               child: Text(
-                '총 점수: $score / 16점',
-                style: TextStyle(fontSize: 30, color: Colors.grey),
+                '점수 : $score / 16점',
+                style: TextStyle(fontSize: 30, color: Color(0xFFFA8072), fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             Text(
-              '카테고리별 점수:',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+              '= 카테고리별 점수 =',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey[700]),
             ),
             SizedBox(height: 10),
             ...categoryScores.entries.map((entry) {
               return Text(
-                '${entry.key}: ${entry.value}점',
-                style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+                '${entry.key} : ${entry.value}점',
+                style: TextStyle(fontSize: 20, color: Colors.grey),
               );
             }).toList(),
           ],
