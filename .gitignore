@@ -47,4 +47,4 @@ app.*.map.json
 serviceAccountKey.json
 
 #firebase
-flask_server/yellowtail-6fdd3-firebase-adminsdk-tl2lj-52cb6471ad.json
+flask_server/yellowtail-6fdd3-firebase-adminsdk-tl2lj-52cb6471ad.json"flask_server/*.json" 
